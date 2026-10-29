@@ -36,7 +36,9 @@ for that step shown in the corner.
    which parts of the backup to bring back before it applies anything, so you can take the playlists
    and leave the old box's settings behind. Untick **Sources** and it warns you: the TV then gets no
    playlists. The app opens only once the whole restore is done, and starts downloading the restored
-   playlists straight away. An encrypted backup asks for its
+   playlists straight away. An Xtream playlist whose password was not in the backup waits instead:
+   the last screen names it, and typing the password in that playlist's edit form in Settings loads
+   it. An encrypted backup asks for its
    password; press ▶ on the field to see what you typed.
 5. **Profile** — name it, pick an avatar, and optionally make it a **Kids** profile or give it a PIN.
 6. **Add a playlist** — four cards: **Remote** (fill it in on your phone), **Type it here** (type it
@@ -156,6 +158,8 @@ types into it, and **▶** on the side panel starts the import: **Xtream** (serv
 password), **M3U** (URL or a local file), or **Stalker/Ministra** (portal URL + MAC).
 An M3U link of the form `…/get.php?username=…&password=…` is really an Xtream account: when the
 provider's server confirms it, it is added as **Xtream**, with movies and series in their own tabs.
+A name another playlist already has gets a number, so two unnamed playlists are **My IPTV** and
+**My IPTV 2**.
 Under **User-Agent** there is an optional **Referer** — leave it empty unless your provider asks
 for one; it is then sent with every stream of that playlist.
 

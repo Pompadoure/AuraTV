@@ -39,6 +39,12 @@
 - **The channel banner names the new channel at once on CH+/CH−**
 - **An mpv channel comes back after Home, with Resume / Go live, instead of a black screen**
 - **Starting on the last channel no longer flashes Home first on large playlists**
+- **An Xtream playlist with a refused password says so instead of loading empty**
+- **A changed password, server, username or MAC re-syncs the playlist on save**
+- **Restoring a backup without passwords names the playlists that need one**
+- **A new playlist with a name already in use is numbered: "My IPTV 2"**
+- **Renamed channels, films and series keep their name on Home and in Continue**
+- **Stalker portals behind a redirect stay signed in; their posters load**
 
 ## v5.2.1 — 2026-10-21
 
