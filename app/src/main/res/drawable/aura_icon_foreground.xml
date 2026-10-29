@@ -45,11 +45,11 @@
         </gradient>
     </aapt:attr>
     </path>
-    <path android:pathData="M48.29,51.15L57.17,57.49L48.29,63.83Z" android:strokeWidth="1.9" android:strokeLineJoin="round" android:strokeColor="#D8C7FF">
+    <path android:pathData="M48.29,51.15L57.17,57.49L48.29,63.83Z" android:strokeWidth="1.9" android:strokeLineJoin="round" android:strokeColor="#FF7480">
     <aapt:attr name="android:fillColor">
         <gradient android:type="linear" android:startX="48.29" android:startY="51.15" android:endX="57.17" android:endY="63.83">
-            <item android:offset="0.0" android:color="#F2E9FF"/>
-            <item android:offset="1.0" android:color="#B79BFF"/>
+            <item android:offset="0.0" android:color="#FF4FA0"/>
+            <item android:offset="1.0" android:color="#FF9A5A"/>
         </gradient>
     </aapt:attr>
     </path>

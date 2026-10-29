@@ -30,7 +30,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 # ---- palette -------------------------------------------------------------------------------------
 BLUE, VIOLET, PINK, ORANGE = '#3E86FF', '#8B4DFF', '#FF4FA0', '#FF9A5A'
 STOPS = [(0.0, BLUE), (0.42, VIOLET), (0.75, PINK), (1.0, ORANGE)]
-PLAY_FILL = [(0.0, '#F2E9FF'), (1.0, '#B79BFF')]
+PLAY_FILL = [(0.0, PINK), (1.0, ORANGE)]
+PLAY_STROKE = '#FF7480'     # solid tone of the play's rounded edge (the midpoint of PLAY_FILL)
 BG_CENTER, BG_EDGE = '#1A1F3F', '#070914'
 HALO = '#141833'            # the "gap" between overlapping ribbons: the background's own tone
 SPLASH_BG = '#040E0B'       # owntv_window_bg, so the splash halos vanish into the launch window
@@ -256,7 +257,7 @@ def stroke_path(path, width, colour=None, gradient=None, unit=ICON_UNIT):
 def play_path(unit=ICON_UNIT, mono=None):
     d = 'M' + 'L'.join(f'{v(ICON_CX + (x - CX) * unit)},{v(ICON_CY + (y - CY) * unit)}' for x, y in PLAY) + 'Z'
     head = (f'    <path android:pathData="{d}" android:strokeWidth="{v(W_PLAY * unit)}" '
-            f'android:strokeLineJoin="round" android:strokeColor="{mono or "#D8C7FF"}"')
+            f'android:strokeLineJoin="round" android:strokeColor="{mono or PLAY_STROKE}"')
     if mono:
         return head + f' android:fillColor="{mono}"/>\n'
     return head + '>' + grad_xml(PLAY_FILL, (44, 46, 58, 66), unit, attr='android:fillColor') + '\n    </path>\n'
