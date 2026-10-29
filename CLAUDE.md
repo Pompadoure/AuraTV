@@ -28,3 +28,6 @@ Repository: **Pompadoure/AuraTV**. Rules below are carried over from his JoTube 
   `owntv_icon_eggshell` resources by name, so the manifest is unchanged.
 - CI: `.github/workflows/android.yml` runs unit tests and lint, then builds the APK on every push to `main`.
   Tag `v*` publishes a release (`AuraTV.apk`).
+- TEMPORARY: upstream's app code is ahead of the published core pin (1.0.69), so CI builds against OwnTV_Core
+  *source* at the pinned commit in the "Use OwnTV_Core source" step of `android.yml` (`CORE_SHA`). When core
+  publishes a release that contains it and the pin is bumped, delete that step. Core still cannot be edited here.

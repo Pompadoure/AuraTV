@@ -19,8 +19,9 @@ permissions:
 
 # Core (tv.own.owntv:core, :player-core) and the mpv engine (tv.own.owntv:libmpv) resolve from OwnTV's
 # public Maven repository, https://ahxn00.github.io/OwnTV_Core/maven — no token, so fork pull requests
-# build exactly like the maintainer's. There is no owntv.corePath here: CI deliberately builds against
-# the PINNED artifact, which is what a release actually ships. Local builds use the composite.
+# build exactly like the maintainer's. Normally there is no owntv.corePath here: CI builds against
+# the PINNED artifact, which is what a release actually ships. Right now the "Use OwnTV_Core source"
+# step overrides that, because the pin is behind upstream's app code.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -109,6 +110,21 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      # TEMPORARY: upstream OwnTV's main is ahead of the published core pin (category locks need more than
+      # 1.0.69, and 2de7883 states "Needs core-1.0.70"), so the pin cannot compile it. Until a newer core
+      # release is published and the pin bumped, build against core's source at the exact commit upstream
+      # verified 2de7883 with (owntv.corePath, the composite build settings.gradle.kts supports).
+      # Remove this step when the pin catches up (see CLAUDE.md).
+      - name: Use OwnTV_Core source (pin is behind upstream)
+        env:
+          CORE_SHA: 38f30e6768bab28bddf3c2a6847788ccfb84358e
+        run: |
+          git init -q "$RUNNER_TEMP/core-src"
+          git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/ahXN00/OwnTV_Core.git "$CORE_SHA"
+          git -C "$RUNNER_TEMP/core-src" checkout -q FETCH_HEAD
+          mkdir -p "$HOME/.gradle"
+          echo "owntv.corePath=$RUNNER_TEMP/core-src" >> "$HOME/.gradle/gradle.properties"
+
       # One variant, not `test`/`lint` across every flavor: standard+debug is the variant the JVM
       # tests are written against, and the ABI flavors differ only in the packaged native libs.
       # On failure the reason is also posted as an annotation (readable via the API without the raw log).
@@ -179,6 +195,21 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+
+      # TEMPORARY: upstream OwnTV's main is ahead of the published core pin (category locks need more than
+      # 1.0.69, and 2de7883 states "Needs core-1.0.70"), so the pin cannot compile it. Until a newer core
+      # release is published and the pin bumped, build against core's source at the exact commit upstream
+      # verified 2de7883 with (owntv.corePath, the composite build settings.gradle.kts supports).
+      # Remove this step when the pin catches up (see CLAUDE.md).
+      - name: Use OwnTV_Core source (pin is behind upstream)
+        env:
+          CORE_SHA: 38f30e6768bab28bddf3c2a6847788ccfb84358e
+        run: |
+          git init -q "$RUNNER_TEMP/core-src"
+          git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/ahXN00/OwnTV_Core.git "$CORE_SHA"
+          git -C "$RUNNER_TEMP/core-src" checkout -q FETCH_HEAD
+          mkdir -p "$HOME/.gradle"
+          echo "owntv.corePath=$RUNNER_TEMP/core-src" >> "$HOME/.gradle/gradle.properties"
 
       - name: Compute version (from the git tag on releases)
         id: ver
