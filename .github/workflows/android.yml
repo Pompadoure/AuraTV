@@ -117,7 +117,10 @@ jobs:
           chmod +x ./gradlew
           set -o pipefail
           ./gradlew testStandardDebugUnitTest --stacktrace 2>&1 | tee "$RUNNER_TEMP/unit.log" || {
-            MSG=$( { grep -m1 -A25 'What went wrong' "$RUNNER_TEMP/unit.log"; grep -m15 '^e: ' "$RUNNER_TEMP/unit.log"; } | tr -d '\r' | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')
+            MSG=$( { grep -m1 -A25 'What went wrong' "$RUNNER_TEMP/unit.log"; grep -m15 '^e: ' "$RUNNER_TEMP/unit.log"; } | tr -d '\r' )
+            [ -n "$MSG" ] || MSG=$(tail -n 30 "$RUNNER_TEMP/unit.log" | tr -d '\r')
+            MSG=$(printf '%s' "$MSG" | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')
+            echo
             echo "::error title=Gradle unit tests failed::$MSG"
             exit 1
           }
@@ -128,7 +131,10 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew lintStandardDebug --stacktrace 2>&1 | tee "$RUNNER_TEMP/lint.log" || {
-            MSG=$( { grep -m1 -A25 'What went wrong' "$RUNNER_TEMP/lint.log"; grep -m15 '^e: ' "$RUNNER_TEMP/lint.log"; } | tr -d '\r' | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')
+            MSG=$( { grep -m1 -A25 'What went wrong' "$RUNNER_TEMP/lint.log"; grep -m15 '^e: ' "$RUNNER_TEMP/lint.log"; } | tr -d '\r' )
+            [ -n "$MSG" ] || MSG=$(tail -n 30 "$RUNNER_TEMP/lint.log" | tr -d '\r')
+            MSG=$(printf '%s' "$MSG" | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')
+            echo
             echo "::error title=Gradle lint failed::$MSG"
             exit 1
           }
