@@ -1,3 +1,5 @@
+> **Aura TV** is a personal fork of [OwnTV](https://github.com/ahXN00/OwnTV) by ahXN00, released under the same GPLv3 license. It has its own app id (`tv.aura.auratv`), name and update source, so it installs alongside the original. All credit for the app goes to the OwnTV project.
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="extras/brand/app-logos/logo_eggshell_light.png">
