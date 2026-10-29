@@ -156,7 +156,6 @@ val appModule = module {
             livePreview = get(),
             enginePool = get(),
             importer = get(),
-            sourceEditor = get(),
         )
     }
     viewModelOf(::LocalSyncViewModel)
