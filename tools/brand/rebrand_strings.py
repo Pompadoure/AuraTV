@@ -22,6 +22,8 @@ import sys
 import tempfile
 
 BRAND = "Aura TV"
+# Resources the app defines itself (app/src/main/res/values/strings.xml); never regenerate them.
+ALWAYS_KEEP = {"app_name"}
 NAME_RE = re.compile(r"OwnTV")
 # The element kinds whose text can hold the product name.
 ELEMENT_RE = re.compile(r"<(string|plurals|string-array)\b([^>]*)>(.*?)</\1>", re.S)
@@ -104,6 +106,8 @@ def main():
             if not nm:
                 continue
             name = nm.group(1)
+            if name in ALWAYS_KEEP:
+                continue
             new_body = rename(body)
             if new_body is None:
                 kept.append((folder, name))
