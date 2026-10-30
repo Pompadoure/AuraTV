@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -628,9 +629,9 @@ fun PlayerHud(
                 // mpv paths publish their metadata after an async resolve, which would show the old channel.
                 val named = tuned ?: zapChannel
                 if (named != null) {
-                    ChannelOsdCard(title = named.name, subtitle = named.number?.let { stringResource(R.string.player_channel_number, it) }, logoUrl = named.logoUrl, guide = zapGuide)
+                    ChannelOsdCard(title = named.name, subtitle = named.number?.let { stringResource(R.string.player_channel_number, it) }, logoUrl = named.logoUrl, guide = if (liveEpgCard != null) null else zapGuide)
                 } else {
-                    ChannelCard(player, guide = zapGuide)
+                    ChannelCard(player, guide = if (liveEpgCard != null) null else zapGuide)
                 }
             }
             when (val osd = tuneOsd) {
@@ -649,6 +650,31 @@ fun PlayerHud(
         // stop button one stray D-pad press from the middle of a programme is not a kindness.
         RecordingBadge(modifier = Modifier.align(Alignment.TopEnd))
 
+        // Aura: the programme panel is what a live channel shows on arrival and on every channel change
+        // (and on OK -> programme info), for a few seconds, with nothing else on screen. Summoning the
+        // controls hides it, so the panel, the bar and the clock never stack.
+        val liveTitle by player.currentMeta.collectAsStateWithLifecycle()
+        var infoPanelShown by remember { mutableStateOf(false) }
+        LaunchedEffect(liveTitle.title, channelFlash, isLive) {
+            if (isLive) { infoPanelShown = true; delay(6000); infoPanelShown = false }
+        }
+        val showInfoPanel = isLive && liveEpgCard != null && infoPanelShown && !controlsVisible && error == null
+        val infoPanelAlpha by androidx.compose.animation.core.animateFloatAsState(
+            if (showInfoPanel) 1f else 0f, tv.own.owntv.ui.theme.ownTvTween(320),
+        )
+        if (infoPanelAlpha > 0f && liveEpgCard != null) {
+            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(320.dp).alpha(infoPanelAlpha)) {
+                Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(320.dp)
+                    .gradientWash(
+                        vertical = true,
+                        0.0f to Color.Transparent,
+                        0.45f to hudShade(0.68f),
+                        1.0f to hudShade(0.78f),
+                    ))
+                Box(Modifier.align(Alignment.BottomStart).padding(start = 28.dp, end = 28.dp, bottom = 40.dp)) { liveEpgCard() }
+            }
+        }
+
         if (controlsVisible) {
             // Scrims: a FLAT semi-transparent panel behind the controls, feathered to transparent only at
             // the inner edge. A pure gradient faded out exactly where the chips and the Now/Next text sit,
@@ -661,7 +687,7 @@ fun PlayerHud(
                     0.5f to hudShade(0.68f),
                     1.0f to Color.Transparent,
                 ))
-            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(if (isLive && liveEpgCard != null) 440.dp else 260.dp)
+            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(260.dp)
                 .gradientWash(
                     vertical = true,
                     0.0f to Color.Transparent,
@@ -693,10 +719,6 @@ fun PlayerHud(
                 val reportDuration = duration.takeIf { it > 0 }?.let { formatTime(it) }
                 val reportSavedMessage = stringResource(R.string.player_report_saved)
 
-                Column(Modifier.align(Alignment.BottomStart).fillMaxWidth()) {
-                if (isLive && liveEpgCard != null) {
-                    Box(Modifier.padding(start = 28.dp, end = 28.dp, bottom = 8.dp)) { liveEpgCard() }
-                }
                 BottomBar(
                     seekFocus = seekFocus,
                     player = player, isLive = isLive, position = { position.value }, duration = duration,
@@ -737,9 +759,8 @@ fun PlayerHud(
                     favorite = favorite, onToggleFavorite = onToggleFavorite,
                     onOpenDialog = { dialog = it }, onPip = onPip, onAudioMode = onAudioMode,
                     onMultiview = onMultiview, onRecordThis = onRecordThis, recordingThis = recordingThis, onBack = onBack,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.align(Alignment.BottomStart),
                 )
-                }
             }
         }
 
