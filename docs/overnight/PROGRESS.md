@@ -10,7 +10,7 @@ base_main_sha: 474dd0b
 - [x] T1 zapping follows the favourites list  DONE 476d265, Android CI run 40980506382 green, i18n run 40980506404 (see log). Not verified on device.
 - [x] T2 channel list readability  DONE 2c692ad, Android CI run 40982587903 green. Not verified on device.
 - [x] T3 side menu expands over content  DONE efe1f42, Android CI run 40984882799 green (attempt 1 failed i18n literal check, fixed). Not verified on device.
-- [ ] T4 Aura TV branding  IN_PROGRESS step 1 (strings script + overrides) cccf1e4 CI run 40986640398; next: icon variants, leftover scan
+- [ ] T4 Aura TV branding  step1 DONE cccf1e4 (CI 40986640398 green); step2 icons/marks/wordmark IN_PROGRESS ed82725 CI 40988193249; next: leftover scan + report
 
 Status values per step: TODO, IN_PROGRESS (with SHA), DONE (with SHA and CI run id), BLOCKED (with evidence).
 
