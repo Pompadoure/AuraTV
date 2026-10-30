@@ -952,7 +952,7 @@ fun OwnTVShell(
             focusedLayer == ShellLayer.SIDEBAR -> {
                 railClosedByBackAt = android.os.SystemClock.uptimeMillis()
                 val moved = runCatching { contentAreaFocus.requestFocus() }.getOrDefault(false)
-                if (!moved) showExit = true
+                if (!moved) { railClosedByBackAt = 0L; showExit = true }
             }
             android.os.SystemClock.uptimeMillis() - railClosedByBackAt <= BACK_EXIT_WINDOW_MS -> {
                 railClosedByBackAt = 0L
