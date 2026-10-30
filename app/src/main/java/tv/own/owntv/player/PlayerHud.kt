@@ -655,8 +655,10 @@ fun PlayerHud(
         // controls hides it, so the panel, the bar and the clock never stack.
         val liveTitle by player.currentMeta.collectAsStateWithLifecycle()
         var infoPanelShown by remember { mutableStateOf(false) }
-        LaunchedEffect(liveTitle.title, channelFlash, isLive) {
-            if (isLive) { infoPanelShown = true; delay(6000); infoPanelShown = false }
+        LaunchedEffect(liveTitle.title, channelFlash, isLive, controlsVisible) {
+            // Summoning the controls ends the panel for good; it does not come back when they hide.
+            if (isLive && !controlsVisible) { infoPanelShown = true; delay(6000); infoPanelShown = false }
+            else infoPanelShown = false
         }
         val showInfoPanel = isLive && liveEpgCard != null && infoPanelShown && !controlsVisible && error == null
         val infoPanelAlpha by androidx.compose.animation.core.animateFloatAsState(
