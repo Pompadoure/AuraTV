@@ -336,7 +336,11 @@ fun EpgScreen(
     // Back from a channel tuned in the guide: its row again, once the reload has the grid on screen.
     LaunchedEffect(restoreFocus, state.loading, state.channels.size) {
         if (!restoreFocus || state.loading || state.channels.isEmpty()) return@LaunchedEffect
-        val idx = vm.lastTunedChannelId?.let { id -> state.channels.indexOfFirst { it.id == id } }?.takeIf { it >= 0 } ?: 0
+        // The channel actually playing wins: zapping in fullscreen (CH+/-, Up/Down, digits) moves it without
+        // the guide knowing, so the guide's own last pick would put the highlight on a stale row, or on the top.
+        val idx = listOfNotNull(liveVm.previewChannel.value?.id, vm.lastTunedChannelId).firstNotNullOfOrNull { id ->
+            state.channels.indexOfFirst { it.id == id }.takeIf { it >= 0 }
+        } ?: 0
         focusedRow = idx
         delay(80)
         focusGrid(idx)
