@@ -2,13 +2,13 @@
 
 status: RUNNING
 lock_owner: run-2026-10-30T00:32:16Z
-heartbeat_utc: 2026-10-30T00:52:52Z
+heartbeat_utc: 2026-10-30T00:52:58Z
 window_end_local: 2026-10-30T06:30+01:00
 base_main_sha: 474dd0b
 
 ## Steps
-- [ ] T1 zapping follows the favourites list  IN_PROGRESS 476d265 pushed, waiting for CI (root cause: guidePlayChannel in OwnTVShell ignored the Guide list, watchFromGuide armed by provider category)
-- [ ] T2 channel list readability                 (steps: to be written by the first run)
+- [x] T1 zapping follows the favourites list  DONE 476d265, Android CI run 40980506382 green, i18n run 40980506404 (see log). Not verified on device.
+- [ ] T2 channel list readability  TODO (next run starts here)
 - [ ] T3 side menu expands over content           (steps: to be written by the first run)
 - [ ] T4 Aura TV branding (strings, logos, icons) (steps: to be written by the first run)
 
@@ -19,3 +19,4 @@ Status values per step: TODO, IN_PROGRESS (with SHA), DONE (with SHA and CI run 
 
 ## Morning report
 (not written yet)
+- 01:52 T1 done and green (476d265). Next: T2.
