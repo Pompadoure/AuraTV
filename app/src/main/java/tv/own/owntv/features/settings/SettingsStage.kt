@@ -626,7 +626,7 @@ fun StageSettingsHeading(
                     text.uppercase(), style = stageText(16, 800, 0.13.em),
                     color = if (focused) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
-                if (count != null) Text(count.toString(), style = stageText(16, 800, 0.13.em), color = HeadingCount, maxLines = 1)
+                if (count != null) Text(count.toString(), style = stageText(16, 800, 0.13.em), color = HeadingCount, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
         return
