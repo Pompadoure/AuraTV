@@ -264,7 +264,14 @@ fun PlayerHud(
 
     // Aura: live channels start with the controls hidden; a remote key press brings them up (see the
     // hidden-state key handler below). Films and episodes still open with the controls shown.
-    var controlsVisible by remember(isLive) { mutableStateOf(!isLive) }
+    // A Live-TV player (it has channel zapping) starts hidden even before the engine reports isLiveContent,
+    // otherwise the play button and progress bar flash in for a few seconds on a fullscreen start.
+    var controlsVisible by remember(isLive) { mutableStateOf(!(isLive || onChannelUp != null)) }
+    // The programme panel on a live channel: `infoPanelShown` while it is up, `infoManual` when the viewer
+    // asked for it with OK (as opposed to it showing because a channel was just started or changed).
+    var infoPanelShown by remember { mutableStateOf(false) }
+    var infoManual by remember { mutableStateOf(false) }
+    var manualInfoTick by remember { mutableIntStateOf(0) }
     var showInfo by remember { mutableStateOf(false) } // stream technical-info overlay
     // Used only by "Report this stream", which writes the current readout into the playback log.
     val reportContext = androidx.compose.ui.platform.LocalContext.current
@@ -565,6 +572,14 @@ fun PlayerHud(
                 // intended: CH-/Down from the first channel lands on the last, and vice versa.
                 canZap && e.key == Key.MediaNext -> { zap(1); true }
                 canZap && e.key == Key.MediaPrevious -> { zap(-1); true }
+                // OK on a live channel brings up the programme panel; Down while that panel is up (and was asked
+                // for by key press) opens the player menu. The automatic panel keeps Down as a zap.
+                isLive && !controlsVisible && error == null && liveEpgCard != null && onToastOk == null &&
+                    (e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter) -> {
+                    infoManual = true; manualInfoTick++; true
+                }
+                isLive && !controlsVisible && infoPanelShown && infoManual && liveEpgCard != null &&
+                    e.key == Key.DirectionDown -> { controlsVisible = true; true }
                 canZap && isLive && !controlsVisible && e.key == Key.DirectionUp -> { zap(zapDirection(up = true, remoteOptions)); true }
                 canZap && isLive && !controlsVisible && e.key == Key.DirectionDown -> { zap(zapDirection(up = false, remoteOptions)); true }
                 // Left/Right with the controls hidden: reveal them on the timeline and take the first
@@ -654,11 +669,12 @@ fun PlayerHud(
         // (and on OK -> programme info), for a few seconds, with nothing else on screen. Summoning the
         // controls hides it, so the panel, the bar and the clock never stack.
         val liveTitle by player.currentMeta.collectAsStateWithLifecycle()
-        var infoPanelShown by remember { mutableStateOf(false) }
-        LaunchedEffect(liveTitle.title, channelFlash, isLive, controlsVisible) {
+        // A new channel or programme makes the panel automatic again.
+        LaunchedEffect(liveTitle.title, channelFlash) { infoManual = false }
+        LaunchedEffect(liveTitle.title, channelFlash, manualInfoTick, isLive, controlsVisible) {
             // Summoning the controls ends the panel for good; it does not come back when they hide.
-            if (isLive && !controlsVisible) { infoPanelShown = true; delay(6000); infoPanelShown = false }
-            else infoPanelShown = false
+            if (isLive && !controlsVisible) { infoPanelShown = true; delay(6000); infoPanelShown = false; infoManual = false }
+            else { infoPanelShown = false; infoManual = false }
         }
         val showInfoPanel = isLive && liveEpgCard != null && infoPanelShown && !controlsVisible && error == null
         val infoPanelAlpha by androidx.compose.animation.core.animateFloatAsState(
