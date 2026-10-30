@@ -912,7 +912,12 @@ class EpgViewModel(
         // Respect customizations: hidden channels stay out of the guide, renames show.
         val cust = customize.observeVisible(pid, MediaType.LIVE).first()
         val q = _query.value.trim()
-        val rawChannels = if (settings.guideShowEmpty.first()) channelDao.channelsForGuide(playlistIds, q, MAX_CHANNELS)
+        val filter = _categoryFilter.value
+        // Aura: a picked category / Favorites / History lists ALL its channels, also those without guide data.
+        // The "only channels with a guide" cut is for the unfiltered grid; applied to a category it left lists
+        // such as "Dagens Utvalda" empty and then blamed mismatched EPG ids.
+        val showAllChannels = settings.guideShowEmpty.first() || filter != null
+        val rawChannels = if (showAllChannels) channelDao.channelsForGuide(playlistIds, q, MAX_CHANNELS)
             else channelDao.channelsWithGuide(ids, q, MAX_CHANNELS)
         val favoriteIds = favoriteDao.observeFavoriteIds(pid, MediaType.LIVE).first().toSet()
         val sortGuideMode = settings.sortGuide.first()
@@ -928,7 +933,6 @@ class EpgViewModel(
             isKidsProfile,
         )
     }
-        val filter = _categoryFilter.value
         // A provider folder keeps out the channels the user moved from it into a custom category.
         val folderKey = (filter as? tv.own.owntv.core.live.LiveKey.Folder)
             ?.let { categoryDao.getById(it.id) }?.let(CustomizeKeys::category)

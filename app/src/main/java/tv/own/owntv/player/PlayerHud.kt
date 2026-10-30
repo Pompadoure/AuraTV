@@ -261,7 +261,9 @@ fun PlayerHud(
     val showNextCard = !isLive && error == null && nav.hasNext && nextUpTitle != null && !stopsAtItemEnd &&
         nextCardDue && !autoNextDismissed
 
-    var controlsVisible by remember { mutableStateOf(true) }
+    // Aura: live channels start with the controls hidden; a remote key press brings them up (see the
+    // hidden-state key handler below). Films and episodes still open with the controls shown.
+    var controlsVisible by remember { mutableStateOf(!isLive) }
     var showInfo by remember { mutableStateOf(false) } // stream technical-info overlay
     // Used only by "Report this stream", which writes the current readout into the playback log.
     val reportContext = androidx.compose.ui.platform.LocalContext.current

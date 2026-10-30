@@ -156,6 +156,7 @@ fun OwnTVShell(
     val homeFirstRowFocus = remember { FocusRequester() }
     var focusedLayer by remember { mutableStateOf(ShellLayer.SIDEBAR) }
     var showExit by remember { mutableStateOf(false) }
+    var railClosedByBackAt by remember { mutableLongStateOf(0L) }
     var showAvatarPicker by remember { mutableStateOf(false) }
     var showAvatarChooser by remember { mutableStateOf(false) }
     var showPlaylistPicker by remember { mutableStateOf(false) }
@@ -946,7 +947,17 @@ fun OwnTVShell(
             selectedSection == MainSection.SETTINGS -> { restoreFocus = true; onSelectSection(MainSection.MORE) }
             // Reached from a Search result: Back returns to Search once, its query, tab and row kept.
             searchReturn == selectedSection && focusedLayer != ShellLayer.SIDEBAR -> returnToSearch()
-            focusedLayer == ShellLayer.SIDEBAR -> showExit = true
+            // Aura: Back on the rail only closes it (focus goes to the content); a second Back within
+            // [BACK_EXIT_WINDOW_MS] asks whether to exit. Back from the content still opens the rail.
+            focusedLayer == ShellLayer.SIDEBAR -> {
+                railClosedByBackAt = android.os.SystemClock.uptimeMillis()
+                val moved = runCatching { contentAreaFocus.requestFocus() }.getOrDefault(false)
+                if (!moved) showExit = true
+            }
+            android.os.SystemClock.uptimeMillis() - railClosedByBackAt <= BACK_EXIT_WINDOW_MS -> {
+                railClosedByBackAt = 0L
+                showExit = true
+            }
             else -> focusRail()
         }
     }
@@ -2099,6 +2110,9 @@ private fun railDetail(section: MainSection, d: RailDetails): String? = when (se
     MainSection.MORE -> stringResource(R.string.shell_rail_detail_more)
     else -> null
 }
+
+/** Second Back within this time after Back closed the rail asks to exit the app. */
+private const val BACK_EXIT_WINDOW_MS = 1_500L
 
 /** How recently ◀ / ▶ or [focusRail] must have happened for a rail visit to open the rail. */
 private const val RAIL_KEY_WINDOW_MS = 400L
