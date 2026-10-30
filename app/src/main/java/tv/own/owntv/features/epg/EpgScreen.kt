@@ -186,8 +186,11 @@ fun EpgScreen(
     onRestored: () -> Unit = {},
     /** Required: every live tune in the app goes through the one shared path in LiveViewModel, so a
      *  channel gets the same Prefer HLS handling, ExoPlayer→mpv ladder, per-channel engine pin and
-     *  external-player routing however the user reached it. */
-    onPlayChannel: (channel: ChannelEntity, channels: List<ChannelEntity>) -> Unit,
+     *  external-player routing however the user reached it.
+     *  [channels] is the list CH+/CH− should step through — the filtered grid in its displayed order — or
+     *  empty when the Guide shows every channel (then the channel's own category is used, as before);
+     *  [key] names the category the grid is filtered to. */
+    onPlayChannel: (channel: ChannelEntity, channels: List<ChannelEntity>, key: LiveKey?) -> Unit,
     /** "Watch from start" on a catch-up programme. Required for the same reason, and additionally so the
      *  archive is tracked as catch-up playback (which decides what engine toggle the player HUD offers). */
     onPlayCatchup: (channel: ChannelEntity, programme: EpgProgrammeEntity) -> Unit,
@@ -372,7 +375,10 @@ fun EpgScreen(
     }
 
     val channelsNow = state.channels
-    val watch: (ChannelEntity) -> Unit = { ch -> vm.noteChannelTuned(ch); onPlayChannel(ch, channelsNow) }
+    val watch: (ChannelEntity) -> Unit = { ch ->
+        vm.noteChannelTuned(ch)
+        onPlayChannel(ch, if (categoryKey != null) channelsNow else emptyList(), categoryKey)
+    }
     val playFromStart: (ChannelEntity, EpgProgrammeEntity) -> Unit = { ch, p ->
         when (catchupPlayer) {
             SettingsRepository.CatchupPlayer.ASK -> askPlayerFor = ch to p

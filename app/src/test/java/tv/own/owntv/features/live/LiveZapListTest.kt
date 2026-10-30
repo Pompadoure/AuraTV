@@ -309,4 +309,26 @@ class LiveZapListTest {
         assertFalse(h.zap.canZap.value)
         h.stop()
     }
+
+    @Test
+    fun `zapping a favourites list skips the same station's other variants and wraps`() {
+        // Provider order: SVT1 HD (1), SVT1 FHD (2), SVT2 HD (3), SVT2 FHD (4), TV4 HD (5).
+        // Favourites keep one variant of each and sit in a different order than the provider's.
+        val all = listOf("SVT1 HD SE", "SVT1 FHD SE", "SVT2 HD SE", "SVT2 FHD SE", "TV4 HD SE")
+            .mapIndexed { i, n -> ChannelEntity(id = i + 1L, sourceId = 1, categoryId = 10L + i, name = n, streamUrl = "http://x/$i.ts", remoteId = "$i") }
+        val favourites = listOf(all[0], all[2], all[4]) // SVT1 HD, SVT2 HD, TV4 HD
+        val h = Harness(category = all) // the provider-category loader must not be used
+        h.zap.armFromBrowse(favourites, title = null, key = LiveKey.Favorites, categoryId = null)
+
+        h.playing = 1
+        assertEquals("SVT2 HD SE", h.zap.next(1)?.name)
+        h.playing = 3
+        assertEquals("TV4 HD SE", h.zap.next(1)?.name)
+        assertEquals("SVT1 HD SE", h.zap.next(-1)?.name)
+        h.playing = 5
+        assertEquals("SVT1 HD SE", h.zap.next(1)?.name) // wraps forwards
+        h.playing = 1
+        assertEquals("TV4 HD SE", h.zap.next(-1)?.name) // wraps backwards
+        h.stop()
+    }
 }

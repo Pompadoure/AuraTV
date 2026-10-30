@@ -1129,9 +1129,9 @@ fun OwnTVShell(
                 // Live TV's view (List / Guide), and how a guide — the TV Guide or Live TV's Guide view —
                 // starts a channel or an archive programme: through LiveViewModel, the one live path.
                 val liveView by liveVm.liveView.collectAsStateWithLifecycle()
-                val guidePlayChannel: (ChannelEntity, List<ChannelEntity>) -> Unit = { ch, _ ->
+                val guidePlayChannel: (ChannelEntity, List<ChannelEntity>, tv.own.owntv.core.live.LiveKey?) -> Unit = { ch, zapList, key ->
                     restoreFocus = false
-                    liveVm.watchFromGuide(ch)
+                    liveVm.watchFromGuide(ch, zapList, key)
                     zapSource = MainSection.LIVE_TV
                     homeVm.stopPreview()
                     // Live TV set to play externally → the channel went to another app;

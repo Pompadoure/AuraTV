@@ -1280,8 +1280,20 @@ class LiveViewModel(
      *  Every live entry point funnels through here into [playChannel], so Prefer HLS, the
      *  ExoPlayer→mpv ladder, compatibility-mode pins, learned stream quirks, the per-playlist
      *  pre-buffer and the external-player toggle apply however the channel was found. */
-    fun watchFromGuide(channel: ChannelEntity) {
-        zapList.armFor(channel)
+    fun watchFromGuide(channel: ChannelEntity, list: List<ChannelEntity> = emptyList(), key: LiveKey? = null) {
+        // A Guide filtered to a category (Favorites, a custom category, History, a provider folder) hands out
+        // the grid it shows: CH± must walk that list in its displayed order, not the channel's own provider
+        // category, which would step from "SVT1 HD" to "SVT1 FHD" instead of the next favourite.
+        if (list.size > 1 && list.any { it.id == channel.id }) {
+            zapList.armFromBrowse(
+                channels = list,
+                title = railItems.value.firstOrNull { it.key == key }?.title,
+                key = key,
+                categoryId = (key as? LiveKey.Folder)?.id,
+            )
+        } else {
+            zapList.armFor(channel)
+        }
         ensurePlaying(channel)
         recordLiveHistory(channel, immediate = true)
     }
