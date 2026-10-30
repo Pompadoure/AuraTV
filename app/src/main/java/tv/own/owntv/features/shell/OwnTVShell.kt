@@ -504,12 +504,12 @@ fun OwnTVShell(
                     // last category; otherwise let LiveViewModel build the channel's provider context rather
                     // than permanently arming a one-item list that disables CH+/CH-.
                     val startKey = liveVm.startupKeyFor(ch)
-                    // The TV Guide sits behind the player, on the channel's category, so Back lands where channels
-                    // are picked instead of on Home.
-                    epgVm.setCategoryFilter(startKey)
-                    epgVm.noteChannelTuned(ch)
+                    // Live TV sits behind the player, on the channel's category with the channel as its preview, so
+                    // Back lands where channels are picked (not on Home) and the preview takes over the same stream.
+                    liveVm.select(startKey)
+                    liveVm.onChannelFocused(ch)
                     restoreFocus = true
-                    onSelectSection(MainSection.EPG)
+                    onSelectSection(MainSection.LIVE_TV)
                     if (startKey == tv.own.owntv.core.live.LiveKey.Favorites) {
                         liveVm.select(startKey)
                         liveVm.watchFullscreen(ch, liveVm.browseListFor(startKey))
@@ -571,6 +571,11 @@ fun OwnTVShell(
                 val channel = (launch as? LauncherLaunch.Live)?.channel
                 if (channel != null && liveVm.isVisibleToActiveProfile(channel) && playerMode == PlayerMode.NONE) {
                     zapSource = MainSection.LIVE_TV
+                    // Same as the last-channel start: Live TV behind the player, the channel as its preview.
+                    liveVm.select(liveVm.startupKeyFor(channel))
+                    liveVm.onChannelFocused(channel)
+                    restoreFocus = true
+                    onSelectSection(MainSection.LIVE_TV)
                     liveVm.watchFullscreen(channel, emptyList())
                     playerMode = PlayerMode.FULLSCREEN
                 } else {
@@ -1130,11 +1135,10 @@ fun OwnTVShell(
                       if (ch != null && playerMode == PlayerMode.NONE) {
                           zapSource = MainSection.LIVE_TV
                           val startKey = liveVm.startupKeyFor(ch)
-                          // Back from the player lands in the TV Guide on this channel's category.
-                          epgVm.setCategoryFilter(startKey)
-                          epgVm.noteChannelTuned(ch)
+                          // Back from the player lands in Live TV on this channel's category, the channel as its preview.
+                          liveVm.select(startKey)
+                          liveVm.onChannelFocused(ch)
                           restoreFocus = true
-                          onSelectSection(MainSection.EPG)
                           if (startKey == tv.own.owntv.core.live.LiveKey.Favorites) {
                               liveVm.select(startKey)
                               liveVm.watchFullscreen(ch, liveVm.browseListFor(startKey))
