@@ -1114,7 +1114,32 @@ fun OwnTVShell(
                 .focusGroup(),
         ) {
           if (isOffline) OfflineBanner()
-          val selectFromNav: (MainSection) -> Unit = { section ->
+          val selectFromNav: (MainSection) -> Unit = selectNav@{ section ->
+              // Aura: Live TV in the menu goes straight to the channel last watched, in fullscreen, with Live TV
+              // as the screen behind it (Back lands there). With no history it opens the Live TV list as before.
+              if (section == MainSection.LIVE_TV && playerMode == PlayerMode.NONE) {
+                  scope.launch {
+                      val ch = liveVm.lastWatchedLiveChannel()?.takeIf { liveVm.isVisibleToActiveProfile(it) }
+                      onSelectSection(section)
+                      if (ch != null && playerMode == PlayerMode.NONE) {
+                          zapSource = MainSection.LIVE_TV
+                          val startKey = liveVm.startupKeyFor(ch)
+                          if (startKey == tv.own.owntv.core.live.LiveKey.Favorites) {
+                              liveVm.select(startKey)
+                              liveVm.watchFullscreen(ch, liveVm.browseListFor(startKey))
+                          } else {
+                              liveVm.watchFullscreen(ch, emptyList())
+                          }
+                          playerMode = PlayerMode.FULLSCREEN
+                      } else {
+                          repeat(16) {
+                              kotlinx.coroutines.delay(60)
+                              if (runCatching { contentAreaFocus.requestFocus() }.getOrDefault(false)) return@launch
+                          }
+                      }
+                  }
+                  return@selectNav
+              }
               if (trendingSearchActive || section == MainSection.SEARCH) {
                   searchVm.setQuery("")
                   trendingSearchActive = false
