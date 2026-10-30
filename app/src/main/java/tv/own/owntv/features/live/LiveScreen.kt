@@ -773,7 +773,7 @@ fun LiveScreen(
                     androidx.compose.runtime.CompositionLocalProvider(androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides edgeScrollSpec) {
                     LazyColumn(
                         state = effectiveListState,
-                        verticalArrangement = Arrangement.spacedBy(8.mpx),
+                        verticalArrangement = Arrangement.spacedBy(LiveRowMetrics.ListGap.mpx),
                         modifier = Modifier.fillMaxWidth().weight(1f).layout { measurable, constraints ->
                             val extra = glowRoom.roundToPx()
                             val placeable = measurable.measure(

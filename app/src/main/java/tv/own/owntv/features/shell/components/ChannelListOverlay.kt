@@ -204,7 +204,7 @@ fun ChannelListOverlay(
                     ),
                 // Room for the focus ring, which the list would otherwise clip.
                 contentPadding = PaddingValues(horizontal = 4.mpx, vertical = 4.mpx),
-                verticalArrangement = Arrangement.spacedBy(2.mpx),
+                verticalArrangement = Arrangement.spacedBy(tv.own.owntv.features.live.LiveRowMetrics.OverlayGap.mpx),
             ) {
                 itemsIndexed(channels, key = { _, ch -> ch.id }) { index, ch ->
                     val isPlaying = index == playingIndex

@@ -517,7 +517,7 @@ val PlaylistMark.shownColor: Color
 // ---------------------------------------------------------------------------------------------
 
 /**
- * A Stage list row: nothing when idle, FX when focused. Channel rows are 84 high with 20 px padding,
+ * A Stage list row: nothing when idle, FX when focused. Channel rows are 96 high (LiveRowMetrics) with 20 px padding,
  * settings rows 84 with 22, Movies list rows 118 with 16 — the caller passes its own.
  */
 @Composable

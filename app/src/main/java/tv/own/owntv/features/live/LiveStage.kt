@@ -126,8 +126,20 @@ internal fun LiveHeader(category: String, count: Int?, showChevron: Boolean, mod
 }
 
 /**
- * `.chrow`: 84 high, 20 padding, 18 gap — number (50, right-aligned, 20/600 dim), white logo plate
- * 76×54, name 22/700, "programme · time left" 17 muted (the time part at 60%), a 300×4 progress line;
+ * The channel row's readability constants, in one place (all scaled by `mpx`, so Settings → Layout size
+ * still applies). Before: row 84, name 22, programme line 17, list gap 8 (overlay 2).
+ */
+internal object LiveRowMetrics {
+    const val RowHeight = 96
+    const val NameSize = 24
+    const val ProgrammeSize = 18
+    const val ListGap = 10
+    const val OverlayGap = 6
+}
+
+/**
+ * `.chrow`: 96 high (was 84), 20 padding, 18 gap — number (50, right-aligned, 20/600 dim), white logo plate
+ * 76×54, name 24/700, "programme · time left" 18 muted (the time part at 60%), a 300×4 progress line;
  * then the provider tags, ↺ for catch-up, ♥ when a favourite, and the playlist mark. Focused = FX.
  * [trailing] replaces that end group (the player's History sheet shows when each was watched).
  */
@@ -149,7 +161,7 @@ internal fun LiveStageRow(
     StageRow(
         onClick = onClick,
         onLongClick = onLongClick,
-        height = 84.mpx,
+        height = LiveRowMetrics.RowHeight.mpx,
         modifier = modifier.fillMaxWidth().onFocusChanged { if (it.hasFocus) onFocus() },
     ) { focused ->
         if (showNumber) {
@@ -163,17 +175,17 @@ internal fun LiveStageRow(
         }
         LivePlate(channel.displayLogoUrl, 76.mpx, 54.mpx)
         Column(Modifier.weight(1f)) {
-            Text(name.name, style = stageText(22, 700), color = if (focused) StageColors.FxText else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(name.name, style = stageText(LiveRowMetrics.NameSize, 700), color = if (focused) StageColors.FxText else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis)
             val title = now?.title ?: nowTitle
             if (title != null) {
                 val left = now?.let { timeLeftText(minutesLeft(it)) }
-                Spacer(Modifier.height(2.mpx))
+                Spacer(Modifier.height(3.mpx))
                 Text(
                     buildAnnotatedString {
                         append(title)
                         if (left != null) withStyle(SpanStyle(color = (if (focused) StageColors.FxLine else StageColors.Muted).copy(alpha = 0.6f))) { append(" · $left") }
                     },
-                    style = stageText(17, 400), color = if (focused) StageColors.FxLine else StageColors.Muted,
+                    style = stageText(LiveRowMetrics.ProgrammeSize, 400), color = if (focused) StageColors.FxLine else StageColors.Muted,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
