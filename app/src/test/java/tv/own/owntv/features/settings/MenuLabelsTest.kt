@@ -83,4 +83,14 @@ class MenuLabelsTest {
         assertTrue("the Menu labels search entry left the search block", "menuLabelsSearchEntry(" in search)
         assertTrue("the Menu labels search entry lost its title", "R.string.settings_nav_menu_labels)" in screen)
     }
+
+    @Test
+    fun `aura default widens an unset docked compact rail to Normal and leaves everything else`() {
+        assertEquals(NavSize.NORMAL, MenuLabels.auraDefaultWiden(docked, NavSize.COMPACT, null))
+        assertEquals(null, MenuLabels.auraDefaultWiden(docked, NavSize.COMPACT, NavSize.WIDE)) // user's own width
+        assertEquals(null, MenuLabels.auraDefaultWiden(docked, NavSize.WIDE, null)) // Always
+        assertEquals(null, MenuLabels.auraDefaultWiden(floating, NavSize.COMPACT, null))
+        // After the default, the Menu labels row reads "When focused".
+        assertEquals(MenuLabels.WHEN_FOCUSED, MenuLabels.of(docked, NavSize.COMPACT, NavSize.NORMAL))
+    }
 }

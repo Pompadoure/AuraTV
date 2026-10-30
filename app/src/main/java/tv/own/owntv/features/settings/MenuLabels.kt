@@ -50,6 +50,15 @@ enum class MenuLabels(val labelRes: Int) {
             }
         }
 
+        /**
+         * Aura TV's default: a docked rail at rest as icons that has never been given a Widen on focus
+         * gets Normal, so the section names open over the content while the rail has focus (the content
+         * keeps the compact room). Null when nothing should change. Applied once per install, so
+         * switching Menu labels back to Off later sticks.
+         */
+        fun auraDefaultWiden(style: NavStyle, size: NavSize, widen: NavSize?): NavSize? =
+            NavSize.NORMAL.takeIf { style == NavStyle.DOCKED && size == NavSize.COMPACT && widen == null }
+
         /** The choice OK steps to from [current]. */
         fun next(style: NavStyle, current: MenuLabels): MenuLabels {
             val choices = choicesFor(style)

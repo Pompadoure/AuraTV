@@ -205,6 +205,19 @@ fun OwnTVShell(
     val navStyle by settingsRepo.navStyle.collectAsStateWithLifecycle(initialValue = tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED)
     val navSize by settingsRepo.navSize.collectAsStateWithLifecycle(initialValue = tv.own.owntv.core.settings.SettingsRepository.NavSize.COMPACT)
     val navWiden by settingsRepo.navWiden.collectAsStateWithLifecycle(initialValue = null)
+    // Aura TV default: icons at rest, names over the content while the rail has focus ("Menu labels: When
+    // focused"). Stored settings cannot carry a new default, so it is applied once per install; the stored
+    // values are read fresh (the collected ones above are still their initial values at first composition).
+    val auraContext = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(Unit) {
+        val prefs = auraContext.getSharedPreferences("aura_defaults", android.content.Context.MODE_PRIVATE)
+        if (prefs.getBoolean("menu_labels_when_focused", false)) return@LaunchedEffect
+        val widen = tv.own.owntv.features.settings.MenuLabels.auraDefaultWiden(
+            settingsRepo.navStyle.first(), settingsRepo.navSize.first(), settingsRepo.navWiden.first(),
+        )
+        if (widen != null) settingsRepo.setNavWiden(widen)
+        prefs.edit().putBoolean("menu_labels_when_focused", true).apply()
+    }
     val navLength by settingsRepo.navLength.collectAsStateWithLifecycle(initialValue = tv.own.owntv.core.settings.SettingsRepository.NavLength.FIT)
     val navHideAfterMs by settingsRepo.navHideAfterMs.collectAsStateWithLifecycle(
         initialValue = tv.own.owntv.core.settings.SettingsRepository.NavHideAfter.DEFAULT_MS,
