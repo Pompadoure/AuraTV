@@ -1,8 +1,8 @@
 # Overnight progress (state branch, CI does not run here)
 
-status: IDLE
-lock_owner: -
-heartbeat_utc: 1970-01-01T00:00:00Z
+status: RUNNING
+lock_owner: run-2026-10-30T00:32:16Z
+heartbeat_utc: 2026-10-30T00:32:16Z
 window_end_local: 2026-10-30T06:30+01:00
 base_main_sha: 474dd0b
 
