@@ -26,6 +26,8 @@ Repository: **Pompadoure/AuraTV**. Rules below are carried over from his JoTube 
   `python3 tools/brand/render_aura.py --res app/src/main/res --extras extras/brand/aura`, commit the output.
   Never edit the generated icon, banner or splash files by hand. The launcher icon overrides OwnTV's
   `owntv_icon_eggshell` resources by name, so the manifest is unchanged.
+- UI strings that name "OwnTV" are overridden by generated `app/src/main/res/values*/aura_brand_strings.xml`: run
+  `python3 tools/brand/rebrand_strings.py --core <OwnTV_Core checkout at CORE_SHA> --res app/src/main/res` after a core bump and commit the output.
 - CI: `.github/workflows/android.yml` runs unit tests and lint, then builds the APK on every push to `main`.
   Tag `v*` publishes a release (`AuraTV.apk`).
 - TEMPORARY: upstream's app code is ahead of the published core pin (1.0.69), so CI builds against OwnTV_Core
