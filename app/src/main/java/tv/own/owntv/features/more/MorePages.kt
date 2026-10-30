@@ -198,11 +198,11 @@ private fun EmptyNote(title: String, body: String? = null) {
 private fun counted(nameRes: Int, n: Int) = stringResource(nameRes) + " " + n
 
 // ---------------------------------------------------------------------------------------------
-// Settings: Search and the twelve group cards
+// Settings: Search and the eight group cards
 // ---------------------------------------------------------------------------------------------
 
 /**
- * The twelve Settings groups, in the order of `SettingsGroup`: a card's index is the group it opens.
+ * The eight Settings groups, in the order of `SettingsGroup`: a card's index is the group it opens.
  */
 private data class SettingsGroupCard(val icon: OwnTVIcon, val nameRes: Int, val summaryRes: Int, val count: Int?)
 
@@ -210,15 +210,11 @@ private val SettingsCards = listOf(
     SettingsGroupCard(OwnTVIcon.SPARKLE, R.string.settings_group_quick, R.string.settings_group_summary_quick, null),
     SettingsGroupCard(OwnTVIcon.PERSON, R.string.settings_group_profile, R.string.settings_card_profile, 3),
     SettingsGroupCard(OwnTVIcon.LIST, R.string.settings_group_sources, R.string.settings_card_sources, 8),
-    SettingsGroupCard(OwnTVIcon.PALETTE, R.string.settings_group_appearance, R.string.settings_card_appearance, 9),
-    SettingsGroupCard(OwnTVIcon.GRID, R.string.settings_group_layout, R.string.settings_card_layout, 10),
+    SettingsGroupCard(OwnTVIcon.PALETTE, R.string.settings_group_appearance_layout, R.string.settings_card_appearance_layout, 20),
     SettingsGroupCard(OwnTVIcon.MOVIES, R.string.settings_group_content_metadata, R.string.settings_card_content, 3),
-    SettingsGroupCard(OwnTVIcon.PLAY_CIRCLE, R.string.settings_vp_cat_player, R.string.settings_card_player, 10),
-    SettingsGroupCard(OwnTVIcon.EXPAND, R.string.settings_vp_cat_picture, R.string.settings_card_picture, 9),
-    SettingsGroupCard(OwnTVIcon.HEADPHONES, R.string.settings_group_sound_subtitles, R.string.settings_card_sound, 12),
-    SettingsGroupCard(OwnTVIcon.LIVE_TV, R.string.settings_live_tv, R.string.settings_card_live, 12),
-    SettingsGroupCard(OwnTVIcon.REC, R.string.settings_group_watching_recording, R.string.settings_card_watching, 11),
-    SettingsGroupCard(OwnTVIcon.INFO, R.string.settings_group_app, R.string.settings_card_app, 10),
+    SettingsGroupCard(OwnTVIcon.PLAY_CIRCLE, R.string.settings_group_player_picture_sound, R.string.settings_card_player_picture_sound, 31),
+    SettingsGroupCard(OwnTVIcon.LIVE_TV, R.string.settings_group_live_recording, R.string.settings_card_live_recording, 23),
+    SettingsGroupCard(OwnTVIcon.INFO, R.string.settings_group_app, R.string.settings_card_app, 9),
 )
 
 /** The card last opened, so Back from its group lands on it again rather than on the search field. */

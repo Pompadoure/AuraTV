@@ -547,9 +547,10 @@ fun SettingsScreen(
             focus = catchupSourcesRowFocus,
             onClick = { saveScroll(); dialogReturn = catchupSourcesRowFocus; showCatchupSources = true },
         ) else null,
-        RootGroup("group_appearance", stringResource(R.string.settings_appearance_group), OwnTVIcon.PALETTE, stringResource(R.string.settings_group_summary_appearance)),
+        RootGroup("group_appearance", stringResource(R.string.settings_group_appearance_layout), OwnTVIcon.PALETTE, stringResource(R.string.settings_group_summary_appearance_layout)),
         RootRow(
             "theme", TileTone.PRIMARY, OwnTVIcon.THEME,
+            heading = stringResource(R.string.settings_appearance_group),
             title = stringResource(R.string.settings_theme), desc = stringResource(R.string.settings_theme_description),
             chip = themeLabel(themeMode), chipTone = TileTone.PRIMARY,
             focus = themeRowFocus,
@@ -631,8 +632,8 @@ fun SettingsScreen(
             focus = rowFocus.getValue(SettingsTab.WEATHER),
             onClick = { open(SettingsTab.WEATHER) },
         ),
-        RootGroup("group_layout", stringResource(R.string.settings_group_layout), OwnTVIcon.LIST_GRID, stringResource(R.string.settings_group_summary_layout)),
-        navigationRootRow(settingsVm, navigationRowFocus) { saveScroll(); dialogReturn = navigationRowFocus; showNavigation = true },
+        navigationRootRow(settingsVm, navigationRowFocus) { saveScroll(); dialogReturn = navigationRowFocus; showNavigation = true }
+            .copy(heading = stringResource(R.string.settings_group_layout)),
         liveLayoutRootRow(settingsVm, liveLayoutRowFocus) { saveScroll(); dialogReturn = liveLayoutRowFocus; showLiveLayout = true },
         *stageLayoutRows(settingsVm, stageSettings) { saveScroll(); dialogReturn = it }.toTypedArray(),
         RootRow(
@@ -676,6 +677,16 @@ fun SettingsScreen(
             onClick = { open(SettingsTab.HOME) },
         ),
         RootRow(
+            "app_startup", TileTone.SECONDARY, OwnTVIcon.POWER,
+            title = stringResource(R.string.settings_app_startup), desc = stringResource(R.string.settings_app_startup_description),
+            chip = if (startupMode == tv.own.owntv.core.settings.StartupMode.SPECIFIC_CHANNEL) {
+                startupChannel?.name ?: startupLabel(startupMode)
+            } else startupLabel(startupMode),
+            chipTone = TileTone.PRIMARY,
+            focus = startupRowFocus,
+            onClick = { saveScroll(); dialogReturn = startupRowFocus; showStartup = true },
+        ),
+        RootRow(
             tabRowKey(SettingsTab.CONTENT_MENUS), TileTone.PRIMARY, OwnTVIcon.MENU,
             title = stringResource(R.string.settings_content_menus_title),
             desc = stringResource(R.string.settings_content_menus_description),
@@ -709,11 +720,8 @@ fun SettingsScreen(
             focus = rowFocus.getValue(SettingsTab.OPEN_SUBTITLES),
             onClick = { open(SettingsTab.OPEN_SUBTITLES) },
         ),
-        RootGroup("group_player", stringResource(R.string.settings_vp_cat_player), OwnTVIcon.PLAY, ""),
-        RootGroup("group_picture", stringResource(R.string.settings_vp_cat_picture), OwnTVIcon.VIDEO, ""),
-        RootGroup("group_sound", stringResource(R.string.settings_group_sound_subtitles), OwnTVIcon.HEADPHONES, ""),
-        RootGroup("group_live", stringResource(R.string.settings_live_tv), OwnTVIcon.LIVE_TV, ""),
-        RootGroup("group_watching", stringResource(R.string.settings_group_watching_recording), OwnTVIcon.REC, ""),
+        RootGroup("group_player", stringResource(R.string.settings_group_player_picture_sound), OwnTVIcon.PLAY, ""),
+        RootGroup("group_live", stringResource(R.string.settings_group_live_recording), OwnTVIcon.LIVE_TV, ""),
         // No "Data" group: Backup and Local sync are places, not preferences,
         // and are More rows now; Clear history moved onto the History screen it acts on; the download
         // folder moved to the Downloads screen. With all four gone the group had nothing left in it.
@@ -748,16 +756,6 @@ fun SettingsScreen(
             title = stringResource(R.string.settings_brand_accent), desc = stringResource(R.string.settings_line_brand_accent),
             chip = stringResource(if (brandAccent) R.string.common_on else R.string.common_off), chipTone = TileTone.SECONDARY,
             onClick = { settingsVm.setBrandAccentTriangle(!brandAccent) },
-        ),
-        RootRow(
-            "app_startup", TileTone.SECONDARY, OwnTVIcon.POWER,
-            title = stringResource(R.string.settings_app_startup), desc = stringResource(R.string.settings_app_startup_description),
-            chip = if (startupMode == tv.own.owntv.core.settings.StartupMode.SPECIFIC_CHANNEL) {
-                startupChannel?.name ?: startupLabel(startupMode)
-            } else startupLabel(startupMode),
-            chipTone = TileTone.PRIMARY,
-            focus = startupRowFocus,
-            onClick = { saveScroll(); dialogReturn = startupRowFocus; showStartup = true },
         ),
         RootRow(
             "check_updates", TileTone.PRIMARY, OwnTVIcon.REFRESH,
@@ -1033,7 +1031,7 @@ fun SettingsScreen(
                     else pluralStringResource(R.plurals.settings_live_preroll_overrides, catchupOverrides, catchupOverrides),
                 chipTone = if (catchupOverrides > 0) TileTone.PRIMARY else TileTone.SECONDARY) { saveScroll(); dialogReturn = searchFieldFocus; showCatchupSources = true } else null,
             // Four screens that had no entry at all, so nothing on them could be found by name.
-            SettingsSearchEntry(stringResource(R.string.settings_group_watching_recording), stringResource(R.string.recording_settings_group), stringResource(R.string.settings_search_keywords_recording), OwnTVIcon.LIVE_TV, TileTone.TERTIARY) { searchQuery = ""; searchMode = false; selectedGroup = SettingsGroup.WATCHING.ordinal },
+            SettingsSearchEntry(stringResource(R.string.settings_group_watching_recording), stringResource(R.string.recording_settings_group), stringResource(R.string.settings_search_keywords_recording), OwnTVIcon.LIVE_TV, TileTone.TERTIARY) { searchQuery = ""; searchMode = false; selectedGroup = SettingsGroup.LIVE.ordinal },
             SettingsSearchEntry(stringResource(R.string.settings_group_content_metadata), stringResource(R.string.settings_open_subtitles), stringResource(R.string.settings_search_keywords_subtitle_appearance), OwnTVIcon.SUBTITLE, TileTone.PRIMARY) { open(SettingsTab.OPEN_SUBTITLES) },
             SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.settings_glass_bg_title), stringResource(R.string.settings_search_keywords_glass), OwnTVIcon.SPARKLE, TileTone.PRIMARY,
                 chip = glassBackgroundSummary(settingsVm.backgroundConfig.collectAsStateWithLifecycle().value, glassConfig), chipTone = if (glassOn) TileTone.PRIMARY else TileTone.SECONDARY) { open(SettingsTab.GLASS_EFFECT) },
@@ -1100,7 +1098,7 @@ fun SettingsScreen(
         val subStyleRef = tv.own.owntv.features.settings.VIDEO_QUICK_ROWS.first { it.key == "vp_sub_style" }
         val screenRowEntries =
             rowsOf(stringResource(R.string.settings_breadcrumb, stringResource(R.string.settings_group_watching_recording), stringResource(R.string.recording_settings_group)),
-                tv.own.owntv.features.settings.RECORDING_SEARCH_ROWS, R.string.settings_search_keywords_recording, OwnTVIcon.LIVE_TV) { searchQuery = ""; searchMode = false; selectedGroup = SettingsGroup.WATCHING.ordinal } +
+                tv.own.owntv.features.settings.RECORDING_SEARCH_ROWS, R.string.settings_search_keywords_recording, OwnTVIcon.LIVE_TV) { searchQuery = ""; searchMode = false; selectedGroup = SettingsGroup.LIVE.ordinal } +
             rowsOf(stringResource(R.string.settings_breadcrumb, tv.own.owntv.features.settings.videoRowPath("vp_sub_style"), stringResource(R.string.settings_subtitle_appearance)),
                 tv.own.owntv.features.settings.SUBTITLE_APPEARANCE_SEARCH_ROWS, R.string.settings_search_keywords_subtitle_appearance, OwnTVIcon.SUBTITLE, jumpTo(subStyleRef)) +
             rowsOf(stringResource(R.string.settings_breadcrumb, stringResource(R.string.settings_breadcrumb, stringResource(R.string.settings_group_app), stringResource(R.string.settings_group_network)), stringResource(R.string.common_proxy)),
@@ -1129,8 +1127,8 @@ fun SettingsScreen(
     val pageCount = when {
         searching && searchQuery.isBlank() -> ""
         searching -> pluralStringResource(R.plurals.settings_match_count, searchResults.size, searchResults.size)
-        group.video != null -> videoGroupCount(group.video, settingsVm).let { n ->
-            val all = n + if (group == SettingsGroup.WATCHING) 4 else 0
+        group.videos.isNotEmpty() -> group.videos.sumOf { videoGroupCount(it, settingsVm) }.let { n ->
+            val all = n + if (group == SettingsGroup.LIVE) 4 else 0
             pluralStringResource(R.plurals.settings_setting_count, all, all)
         }
         group == SettingsGroup.PROFILE -> tv.own.owntv.features.settings.profileCount().let { n ->
@@ -1173,13 +1171,16 @@ fun SettingsScreen(
                 searching -> searchResults.forEach { e ->
                     StageSearchResultRow(e.icon, e.group, e.title, e.chip, onClick = e.onClick)
                 }
-                group.video != null -> {
-                    VideoPlayerGroupRows(
-                        group.video, pageScroll,
-                        openMiniPlayer = openMiniPlayer,
-                        focusRowKey = videoRowKey,
-                    )
-                    if (group == SettingsGroup.WATCHING) tv.own.owntv.features.settings.RecordingSettingsRows(pageScroll)
+                group.videos.isNotEmpty() -> {
+                    group.videos.forEachIndexed { i, videoGroup ->
+                        VideoPlayerGroupRows(
+                            videoGroup, pageScroll,
+                            openMiniPlayer = openMiniPlayer,
+                            focusRowKey = videoRowKey,
+                            firstHeading = i == 0,
+                        )
+                    }
+                    if (group == SettingsGroup.LIVE) tv.own.owntv.features.settings.RecordingSettingsRows(pageScroll)
                 }
                 group == SettingsGroup.PROFILE -> tv.own.owntv.features.settings.ProfileSettingsRows()
                 // Only Quick can be empty, and only because the user emptied it.
