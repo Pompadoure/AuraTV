@@ -549,9 +549,9 @@ fun HomeScreen(
                                 modifier = rowModifier,
                             )
 
-                            HomeRow.FAVORITE_CHANNELS -> HomeLiveRow(
-                                title = row.displayTitle(),
-                                mode = state.config.favoriteLiveMode,
+                            // Aura: the favourite-channels slot is a plain "On now" programme list, not a card rail.
+                            HomeRow.FAVORITE_CHANNELS -> HomeProgrammeList(
+                                title = stringResource(R.string.home_row_on_now),
                                 channels = state.favoriteLive,
                                 guide = state.favoriteGuide,
                                 onChannelClick = onPlayChannel,

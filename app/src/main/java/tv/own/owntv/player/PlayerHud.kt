@@ -661,7 +661,7 @@ fun PlayerHud(
                     0.5f to hudShade(0.68f),
                     1.0f to Color.Transparent,
                 ))
-            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(260.dp)
+            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(if (isLive && liveEpgCard != null) 440.dp else 260.dp)
                 .gradientWash(
                     vertical = true,
                     0.0f to Color.Transparent,
@@ -677,10 +677,10 @@ fun PlayerHud(
                 player, isLive, listOfNotNull(engineChip) + streamChips.ifEmpty { listOfNotNull(videoRes) }, duration, onBack,
                 modifier = Modifier.align(Alignment.TopStart),
                 below = matchLine,
-                trailing = if (error == null) liveEpgCard else null,
+                // Aura: the clock sits in the top-right corner; the programme panel moved to the bottom.
                 // Hidden behind an error overlay along with the rest of the chrome: a clock ticking
                 // over a failure message just draws the eye to the wrong thing.
-                centre = if (error == null) {
+                trailing = if (error == null) {
                     { PlayerClock(watchingMs = watchingWallMs?.invoke()) }
                 } else null,
             )
@@ -693,6 +693,10 @@ fun PlayerHud(
                 val reportDuration = duration.takeIf { it > 0 }?.let { formatTime(it) }
                 val reportSavedMessage = stringResource(R.string.player_report_saved)
 
+                Column(Modifier.align(Alignment.BottomStart).fillMaxWidth()) {
+                if (isLive && liveEpgCard != null) {
+                    Box(Modifier.padding(start = 28.dp, end = 28.dp, bottom = 8.dp)) { liveEpgCard() }
+                }
                 BottomBar(
                     seekFocus = seekFocus,
                     player = player, isLive = isLive, position = { position.value }, duration = duration,
@@ -733,8 +737,9 @@ fun PlayerHud(
                     favorite = favorite, onToggleFavorite = onToggleFavorite,
                     onOpenDialog = { dialog = it }, onPip = onPip, onAudioMode = onAudioMode,
                     onMultiview = onMultiview, onRecordThis = onRecordThis, recordingThis = recordingThis, onBack = onBack,
-                    modifier = Modifier.align(Alignment.BottomStart),
+                    modifier = Modifier.fillMaxWidth(),
                 )
+                }
             }
         }
 

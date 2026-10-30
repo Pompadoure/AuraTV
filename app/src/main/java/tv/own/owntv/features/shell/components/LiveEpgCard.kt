@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -223,4 +224,73 @@ private fun SlotLabel(text: String, color: Color) {
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 1.dp),
     )
+}
+
+/**
+ * Aura: the player's programme panel, drawn above the bottom bar. Same look as the programme block
+ * beside the guide preview: accent clock eyebrow ("Live now · until 21:40 · 35 min left"), a large
+ * title, a details line, a two-line synopsis, a progress bar and a single "Next" line. Draws nothing
+ * for a channel without guide data.
+ */
+@Composable
+fun LiveProgrammePanel(epg: EpgNowNext?, modifier: Modifier = Modifier) {
+    if (epg == null || (epg.now == null && epg.next == null)) return
+    val formatTime = rememberSystemTimeFormatter()
+    var wallNow by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) { while (true) { delay(20_000); wallNow = System.currentTimeMillis() } }
+    val accent = tv.own.owntv.ui.theme.stageAccent.accent
+    Column(modifier.widthIn(max = 980.dp)) {
+        epg.now?.let { entry ->
+            val remaining = ((entry.stopMs - wallNow) / 60_000L).toInt()
+            val timing = if (remaining in 1..600) {
+                stringResource(R.string.content_live_time_remaining, formatTime(entry.stopMs), remaining)
+            } else {
+                stringResource(R.string.content_live_time_range, formatTime(entry.startMs), formatTime(entry.stopMs))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.CLOCK, accent, Modifier.size(22.dp))
+                Text(
+                    stringResource(R.string.content_live_now).uppercase() + " · " + timing,
+                    style = tv.own.owntv.ui.theme.stageText(22, 700), color = accent,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Text(
+                entry.title, style = tv.own.owntv.ui.theme.stageText(46, 800), color = hudInk,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+            )
+            val d = epg.nowDetails
+            val details = d?.let { (it.categoryList + listOfNotNull(it.episode, it.year?.toString(), it.rating)).takeIf { l -> l.isNotEmpty() }?.joinToString(" · ") }
+            if (details != null) {
+                Text(details, style = tv.own.owntv.ui.theme.stageText(22, 500), color = hudInk.copy(alpha = 0.6f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            entry.description?.takeIf { it.isNotBlank() }?.let { synopsis ->
+                Text(
+                    synopsis, style = tv.own.owntv.ui.theme.stageText(22, 400), color = hudInk.copy(alpha = 0.78f),
+                    maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp),
+                )
+            }
+            val span = (entry.stopMs - entry.startMs).toFloat()
+            if (span > 0f) {
+                val progress = ((wallNow - entry.startMs) / span).coerceIn(0f, 1f)
+                Box(
+                    Modifier.padding(top = 10.dp).fillMaxWidth(0.5f).height(3.dp).clip(RoundedCornerShape(2.dp))
+                        .background(hudInk.copy(alpha = 0.2f)),
+                ) {
+                    Box(Modifier.fillMaxWidth(progress).height(3.dp).clip(RoundedCornerShape(2.dp)).background(accent))
+                }
+            }
+        }
+        epg.next?.let { entry ->
+            Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                SlotLabel(stringResource(R.string.content_live_next), hudInk.copy(alpha = 0.5f))
+                Text(
+                    entry.title + " · " + stringResource(R.string.content_live_time_range, formatTime(entry.startMs), formatTime(entry.stopMs)),
+                    style = tv.own.owntv.ui.theme.stageText(24, 500), color = hudInk.copy(alpha = 0.75f),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
 }

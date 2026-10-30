@@ -49,8 +49,8 @@ import tv.own.owntv.ui.stage.drawBoxShadow
 import tv.own.owntv.ui.components.drawStageGlyph
 
 internal object GuideGridDefaults {
-    /** The channel column when the guide widths are not customised (48 → 344 of 1920). */
-    const val ChannelColShare = 296f / 1920f
+    /** The channel column when the guide widths are not customised (48 → 420 of 1920; Aura: wider so long channel names fit). */
+    const val ChannelColShare = 372f / 1920f
     /** `.gcell` rows: 56 high, 62 apart. */
     val RowHeight = 56.mpx
     val RowGap = 6.mpx

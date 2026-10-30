@@ -219,6 +219,16 @@ fun OwnTVShell(
         if (widen != null) settingsRepo.setNavWiden(widen)
         prefs.edit().putBoolean("menu_labels_when_focused", true).apply()
     }
+    // Aura TV default: Home without the "Keep watching" hero row (the Favourite channels slot is the
+    // "On now" programme list). Applied once per profile, so showing it again in Settings sticks.
+    LaunchedEffect(Unit) {
+        val prefs = auraContext.getSharedPreferences("aura_defaults", android.content.Context.MODE_PRIVATE)
+        val pid = settingsRepo.activeProfileId.first { it >= 0 }
+        val key = "home_hero_hidden_$pid"
+        if (prefs.getBoolean(key, false)) return@LaunchedEffect
+        settingsRepo.updateHomeConfig(pid) { it.copy(hidden = it.hidden + tv.own.owntv.core.model.HomeRow.HERO) }
+        prefs.edit().putBoolean(key, true).apply()
+    }
     val navLength by settingsRepo.navLength.collectAsStateWithLifecycle(initialValue = tv.own.owntv.core.settings.SettingsRepository.NavLength.FIT)
     val navHideAfterMs by settingsRepo.navHideAfterMs.collectAsStateWithLifecycle(
         initialValue = tv.own.owntv.core.settings.SettingsRepository.NavHideAfter.DEFAULT_MS,
@@ -1104,6 +1114,15 @@ fun OwnTVShell(
                   restoreTrendingSearchFocus = false
               }
               onSelectSection(section)
+              // Aura: choosing a section hands focus to its content, which collapses the rail. Two frames
+              // let the new destination compose first; if it has nothing focusable yet, focus stays put.
+              if (section != MainSection.SEARCH) {
+                  scope.launch {
+                      withFrameNanos { }
+                      withFrameNanos { }
+                      runCatching { contentAreaFocus.requestFocus() }
+                  }
+              }
           }
           // Audio Mode: the now-playing bar — in the top bar left of the weather chip, or in the Stage
           // cluster in the Continue pill's place. Present only while PlayerMode.AUDIO.
@@ -1794,7 +1813,7 @@ fun OwnTVShell(
                             // The live row is dimmed while an archive plays — it is context, not the
                             // thing being watched — and returns to full strength back at the live edge.
                             androidx.compose.foundation.layout.Column(
-                                horizontalAlignment = androidx.compose.ui.Alignment.End,
+                                horizontalAlignment = androidx.compose.ui.Alignment.Start,
                                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp),
                             ) {
                                 if (watching != null) {
@@ -1804,7 +1823,7 @@ fun OwnTVShell(
                                         atMs = watching,
                                     )
                                 }
-                                tv.own.owntv.features.shell.components.LiveEpgCard(
+                                tv.own.owntv.features.shell.components.LiveProgrammePanel(
                                     epg = epg,
                                     modifier = if (watching == null) Modifier else Modifier.alpha(0.55f),
                                 )

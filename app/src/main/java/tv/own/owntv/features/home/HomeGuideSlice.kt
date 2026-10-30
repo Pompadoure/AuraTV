@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -173,3 +174,79 @@ private fun programmeProgress(programme: EpgProgrammeEntity, now: Long): Float {
     val duration = (programme.stopMs - programme.startMs).coerceAtLeast(1L)
     return ((now - programme.startMs).toFloat() / duration).coerceIn(0f, 1f)
 }
+
+/**
+ * Aura: a plain programme list for Home. One row per favourite channel that has guide data (all
+ * favourites without it): logo, channel, the programme on air, the time left and a progress bar.
+ * Replaces the card rail for Favourite channels; OK tunes the channel.
+ */
+@Composable
+fun HomeProgrammeList(
+    title: String,
+    channels: List<ChannelEntity>,
+    guide: GuideSliceState,
+    onChannelClick: (Long, List<ChannelEntity>) -> Unit,
+    onFocus: () -> Unit,
+    firstItemFocusRequester: FocusRequester?,
+    start: Dp,
+    track: (FocusRequester) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shown = guide.channels.ifEmpty { channels }.take(HOME_PROGRAMME_LIST_ROWS)
+    if (shown.isEmpty()) return
+    val a = stageAccent
+    Column(modifier) {
+        HomeRowHeader(title, small = null, start = start)
+        Column(
+            Modifier.padding(start = start, end = 64.mpx).focusRestorer().focusGroup(),
+            verticalArrangement = Arrangement.spacedBy(8.mpx),
+        ) {
+            shown.forEachIndexed { index, channel ->
+                val programme = currentProgramme(guide.programmes[channel.id].orEmpty(), guide.now)
+                StageSurface(
+                    onClick = { onChannelClick(channel.id, shown) },
+                    radius = StageRadii.Row,
+                    modifier = Modifier
+                        .fillMaxWidth().height(72.mpx)
+                        .then(if (index == 0 && firstItemFocusRequester != null) Modifier.focusRequester(firstItemFocusRequester) else Modifier)
+                        .tracked(track = track)
+                        .onFocusChanged { if (it.hasFocus) onFocus() },
+                    focusStyle = StageFocus.FX,
+                    idle = Modifier.background(StageColors.Ink.copy(alpha = 0.05f), RoundedCornerShape(StageRadii.Row)),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    Row(
+                        Modifier.fillMaxSize().padding(horizontal = 18.mpx, vertical = 10.mpx),
+                        horizontalArrangement = Arrangement.spacedBy(20.mpx),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ChannelPlate(channel, Modifier.size(84.mpx, 52.mpx))
+                        Text(
+                            channel.name, style = stageText(22, 700), color = StageColors.Text,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(300.mpx),
+                        )
+                        Text(
+                            programme?.title.orEmpty(), style = stageText(22, 500), color = StageColors.Muted,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+                        )
+                        if (programme != null) {
+                            Text(
+                                timeLeftText(((programme.stopMs - guide.now).coerceAtLeast(0L) + 59_999L) / 60_000L),
+                                style = stageText(18, 500), color = StageColors.Dim, maxLines = 1,
+                                overflow = TextOverflow.Ellipsis, modifier = Modifier.width(150.mpx),
+                            )
+                            Box(Modifier.width(200.mpx).height(5.mpx).clip(RoundedCornerShape(3.mpx)).background(StageColors.Ink.copy(alpha = 0.12f))) {
+                                Box(
+                                    Modifier.fillMaxWidth(programmeProgress(programme, guide.now)).height(5.mpx).clip(RoundedCornerShape(3.mpx))
+                                        .background(Brush.horizontalGradient(listOf(a.accent, a.focus))),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private const val HOME_PROGRAMME_LIST_ROWS = 8
