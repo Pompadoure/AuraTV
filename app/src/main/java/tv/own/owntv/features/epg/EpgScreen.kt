@@ -245,7 +245,9 @@ fun EpgScreen(
     LaunchedEffect(previewChannel?.id, effectivePreview, previewArmed) {
         if (!effectivePreview || !previewArmed) return@LaunchedEffect
         val ch = previewChannel ?: return@LaunchedEffect
-        delay(700)
+        // The guide changes its preview only on an explicit OK (never by following the focus), so there is no
+        // browsing to wait out; 150 ms only coalesces two quick OKs. It was 700 ms.
+        delay(150)
         liveVm.playPreview(ch)
     }
 
