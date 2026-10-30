@@ -500,9 +500,16 @@ fun OwnTVShell(
                 val ch = liveVm.lastWatchedLiveChannel()
                 if (ch != null && playerMode == PlayerMode.NONE) {
                     zapSource = MainSection.LIVE_TV
-                    // There is no caller-owned browse rail here. Let LiveViewModel build the channel's
-                    // provider context instead of permanently arming a one-item list that disables CH+/CH-.
-                    liveVm.watchFullscreen(ch, emptyList())
+                    // Favorites stays the browse context when the channel is a favourite and Favorites was the
+                    // last category; otherwise let LiveViewModel build the channel's provider context rather
+                    // than permanently arming a one-item list that disables CH+/CH-.
+                    val startKey = liveVm.startupKeyFor(ch)
+                    if (startKey == tv.own.owntv.core.live.LiveKey.Favorites) {
+                        liveVm.select(startKey)
+                        liveVm.watchFullscreen(ch, liveVm.browseListFor(startKey))
+                    } else {
+                        liveVm.watchFullscreen(ch, emptyList())
+                    }
                     playerMode = PlayerMode.FULLSCREEN
                 }
             }
@@ -514,9 +521,9 @@ fun OwnTVShell(
                 val toGuide = startupMode == tv.own.owntv.core.settings.StartupMode.LAST_CHANNEL_GUIDE
                 if (ch != null && playerMode == PlayerMode.NONE) {
                     if (!toGuide && resumeSettings.liveView.first() == tv.own.owntv.core.settings.SettingsRepository.LiveView.LIST) {
-                        liveVm.revealChannel(ch)
+                        liveVm.revealChannel(ch, liveVm.startupKeyFor(ch))
                     } else {
-                        val key = liveVm.railKeyOf(ch)
+                        val key = liveVm.startupKeyFor(ch)
                         if (toGuide) epgVm.setCategoryFilter(key) else liveVm.select(key)
                         epgVm.noteChannelTuned(ch)
                         liveVm.onChannelFocused(ch)

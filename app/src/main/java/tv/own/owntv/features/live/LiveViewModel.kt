@@ -933,7 +933,7 @@ class LiveViewModel(
 
     /** Open [channel] where it lives: its own category, or All channels when that category is not in
      *  the rail or the channel is not in it. It becomes the preview, as if the user had walked there. */
-    fun revealChannel(channel: ChannelEntity) {
+    fun revealChannel(channel: ChannelEntity, preferred: LiveKey? = null) {
         _search.value = ""
         _previewArmed.value = true
         _previewChannel.value = channel
@@ -943,7 +943,7 @@ class LiveViewModel(
             val folder = channel.categoryId?.let { LiveKey.Folder(it) }
             val inRail = folder != null &&
                 kotlinx.coroutines.withTimeoutOrNull(2_000) { railItems.first { list -> list.any { it.key == folder } } } != null
-            for (key in listOfNotNull(folder.takeIf { inRail }, LiveKey.All)) {
+            for (key in listOfNotNull(preferred, folder.takeIf { inRail }, LiveKey.All).distinct()) {
                 val position = pagingSource(key, c, "", sort).positionOf(channel.id, { it.id }) ?: continue
                 if (lockedKey == null) _selected.value = key
                 _reveal.value = tv.own.owntv.features.search.Reveal(key, channel.id, position)
@@ -953,6 +953,19 @@ class LiveViewModel(
     }
 
     fun revealDone() { _reveal.value = null }
+
+    /** Aura: where a startup channel opens. The category the user last browsed (Favorites) wins when the channel
+     *  is in it, so starting the app does not swap Favorites for the channel's provider folder. */
+    suspend fun startupKeyFor(channel: ChannelEntity): LiveKey {
+        if (settings.rememberCategoryLive.first() && parseLiveKey(settings.lastLiveCategory.first()) == LiveKey.Favorites) {
+            val pid = ctx.first { it.profileId >= 0 }.profileId
+            if (favoriteDao.exists(pid, MediaType.LIVE, channel.id)) return LiveKey.Favorites
+        }
+        return railKeyOf(channel)
+    }
+
+    /** The channels of [key] in the order the user sees them, for a fullscreen start that keeps CH+/CH− in that list. */
+    suspend fun browseListFor(key: LiveKey): List<ChannelEntity> = channelsInRail(key)
 
     /** The rail entry [channel] lives in: its own category, or All channels when that category is not in the rail. */
     suspend fun railKeyOf(channel: ChannelEntity): LiveKey {
