@@ -520,6 +520,8 @@
 1	technical	app/src/main/java/tv/own/owntv/features/settings/SettingsLivePreview.kt	w780
 1	empty	app/src/main/java/tv/own/owntv/features/settings/SettingsPickerDialogs.kt	\0
 5	technical	app/src/main/java/tv/own/owntv/features/settings/SettingsStage.kt	\0
+1	preference-key	app/src/main/java/tv/own/owntv/features/settings/SettingsStage.kt	aura_settings_ui
+1	preference-key	app/src/main/java/tv/own/owntv/features/settings/SettingsStage.kt	folded_sections
 1	technical	app/src/main/java/tv/own/owntv/features/settings/SettingsStage.kt	·
 1	technical	app/src/main/java/tv/own/owntv/features/settings/SettingsStage.kt	▲ ▼
 2	technical	app/src/main/java/tv/own/owntv/features/settings/SettingsStage.kt	▶
@@ -544,6 +546,7 @@
 1	protocol	app/src/main/java/tv/own/owntv/features/settings/SettingsViewModel.kt	timed out
 1	protocol	app/src/main/java/tv/own/owntv/features/settings/SettingsViewModel.kt	unknown host
 15	empty	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	\0
+1	technical	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	#
 5	technical	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	${src.name} · $value
 1	locale	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	,
 1	technical	app/src/main/java/tv/own/owntv/features/settings/VideoPlayerSettingsScreen.kt	-1
@@ -653,6 +656,7 @@
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	${src.name} · ${catchupOverrideLabel(src)}
 2	technical	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	+
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	-
+1	technical	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	/
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	MANUAL:
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	UTC
 1	technical	app/src/main/java/tv/own/owntv/features/shell/components/SettingsScreen.kt	UTC$sign%02d:%02d

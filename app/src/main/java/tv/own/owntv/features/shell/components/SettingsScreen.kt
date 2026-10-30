@@ -550,7 +550,7 @@ fun SettingsScreen(
         RootGroup("group_appearance", stringResource(R.string.settings_group_appearance_layout), OwnTVIcon.PALETTE, stringResource(R.string.settings_group_summary_appearance_layout)),
         RootRow(
             "theme", TileTone.PRIMARY, OwnTVIcon.THEME,
-            heading = stringResource(R.string.settings_appearance_group),
+            heading = stringResource(R.string.settings_section_theme_effects),
             title = stringResource(R.string.settings_theme), desc = stringResource(R.string.settings_theme_description),
             chip = themeLabel(themeMode), chipTone = TileTone.PRIMARY,
             focus = themeRowFocus,
@@ -593,6 +593,7 @@ fun SettingsScreen(
         ) else null,
         RootRow(
             "fonts", TileTone.SECONDARY, OwnTVIcon.TEXT_SIZE,
+            heading = stringResource(R.string.settings_section_text_motion),
             title = stringResource(R.string.settings_font_customization),
             desc = stringResource(R.string.settings_font_customization_description),
             chip = stringResource(R.string.common_percent, fontCustomization.sizePercent),
@@ -623,17 +624,8 @@ fun SettingsScreen(
             focus = animationsRowFocus,
             onClick = { saveScroll(); dialogReturn = animationsRowFocus; showAnimations = true },
         ),
-        RootRow(
-            tabRowKey(SettingsTab.WEATHER), TileTone.SECONDARY, OwnTVIcon.WEATHER,
-            title = stringResource(R.string.settings_weather),
-            desc = stringResource(R.string.settings_weather_description_root),
-            chip = if (weatherEnabled) stringResource(R.string.common_on) else stringResource(R.string.common_off),
-            chipTone = if (weatherEnabled) TileTone.PRIMARY else TileTone.SECONDARY,
-            focus = rowFocus.getValue(SettingsTab.WEATHER),
-            onClick = { open(SettingsTab.WEATHER) },
-        ),
         navigationRootRow(settingsVm, navigationRowFocus) { saveScroll(); dialogReturn = navigationRowFocus; showNavigation = true }
-            .copy(heading = stringResource(R.string.settings_group_layout)),
+            .copy(heading = stringResource(R.string.settings_section_navigation_layout)),
         liveLayoutRootRow(settingsVm, liveLayoutRowFocus) { saveScroll(); dialogReturn = liveLayoutRowFocus; showLiveLayout = true },
         *stageLayoutRows(settingsVm, stageSettings) { saveScroll(); dialogReturn = it }.toTypedArray(),
         RootRow(
@@ -672,6 +664,7 @@ fun SettingsScreen(
         ),
         RootRow(
             tabRowKey(SettingsTab.HOME), TileTone.SECONDARY, OwnTVIcon.HOME,
+            heading = stringResource(R.string.settings_section_start_home),
             title = stringResource(R.string.settings_home_root), desc = stringResource(R.string.settings_home_root_description),
             focus = rowFocus.getValue(SettingsTab.HOME),
             onClick = { open(SettingsTab.HOME) },
@@ -687,7 +680,17 @@ fun SettingsScreen(
             onClick = { saveScroll(); dialogReturn = startupRowFocus; showStartup = true },
         ),
         RootRow(
+            tabRowKey(SettingsTab.WEATHER), TileTone.SECONDARY, OwnTVIcon.WEATHER,
+            title = stringResource(R.string.settings_weather),
+            desc = stringResource(R.string.settings_weather_description_root),
+            chip = if (weatherEnabled) stringResource(R.string.common_on) else stringResource(R.string.common_off),
+            chipTone = if (weatherEnabled) TileTone.PRIMARY else TileTone.SECONDARY,
+            focus = rowFocus.getValue(SettingsTab.WEATHER),
+            onClick = { open(SettingsTab.WEATHER) },
+        ),
+        RootRow(
             tabRowKey(SettingsTab.CONTENT_MENUS), TileTone.PRIMARY, OwnTVIcon.MENU,
+            heading = stringResource(R.string.settings_section_menus_remote),
             title = stringResource(R.string.settings_content_menus_title),
             desc = stringResource(R.string.settings_content_menus_description),
             focus = rowFocus.getValue(SettingsTab.CONTENT_MENUS),
@@ -730,6 +733,7 @@ fun SettingsScreen(
         // own: More › Settings opens groups by position (SettingsGroup), and its 12 cards fill the page.
         RootRow(
             tabRowKey(SettingsTab.SPORTS), TileTone.PRIMARY, OwnTVIcon.SPORTS,
+            heading = stringResource(R.string.sports_title),
             title = stringResource(R.string.sports_title), desc = stringResource(R.string.sports_leagues),
             focus = rowFocus.getValue(SettingsTab.SPORTS),
             onClick = { open(SettingsTab.SPORTS) },
@@ -759,6 +763,7 @@ fun SettingsScreen(
         ),
         RootRow(
             "check_updates", TileTone.PRIMARY, OwnTVIcon.REFRESH,
+            heading = stringResource(R.string.settings_section_updates),
             title = stringResource(R.string.settings_check_updates), desc = stringResource(R.string.settings_check_updates_description),
             chip = "v${tv.own.owntv.BuildConfig.VERSION_NAME}",
             focus = updateRowFocus,
@@ -1186,11 +1191,21 @@ fun SettingsScreen(
                 // Only Quick can be empty, and only because the user emptied it.
                 selectedRows.isEmpty() -> StageSettingsNote(stringResource(R.string.settings_quick_empty_title), stringResource(R.string.settings_quick_empty_hint))
                 else -> {
+                    val folds = tv.own.owntv.features.settings.rememberCollapsedSections()
+                    var sectionFolded = false
                     selectedRows.forEachIndexed { i, row ->
                         row.heading?.let { heading ->
                             val under = selectedRows.drop(i).let { rest -> 1 + rest.drop(1).takeWhile { it.heading == null }.size }
-                            StageSettingsHeading(heading, under, first = i == 0)
+                            if (inQuick) {
+                                sectionFolded = false
+                                StageSettingsHeading(heading, under, first = i == 0)
+                            } else {
+                                val foldKey = group.name + "/" + heading
+                                sectionFolded = folds.isCollapsed(foldKey)
+                                StageSettingsHeading(heading, under, first = i == 0, collapsed = sectionFolded, onToggle = { folds.toggle(foldKey) })
+                            }
                         }
+                        if (sectionFolded) return@forEachIndexed
                         RootRowStage(
                             row,
                             // Inside Quick every row is pinned by definition — the dot would say nothing.

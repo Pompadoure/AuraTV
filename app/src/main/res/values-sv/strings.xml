@@ -10,4 +10,10 @@
     <string name="settings_card_player_picture_sound">Spelare, avkodare, HDR, volym, undertexter</string>
     <string name="settings_group_live_recording">Live-tv och inspelning</string>
     <string name="settings_card_live_recording">Förhandsvisning, spola tillbaka, hoppa, återuppta, inspelning</string>
+    <string name="settings_section_theme_effects">Tema och effekter</string>
+    <string name="settings_section_text_motion">Text, storlek och rörelse</string>
+    <string name="settings_section_navigation_layout">Navigering och layout</string>
+    <string name="settings_section_start_home">Start och Hem</string>
+    <string name="settings_section_menus_remote">Menyer och fjärrkontroll</string>
+    <string name="settings_section_updates">Uppdateringar</string>
 </resources>

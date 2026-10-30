@@ -11,4 +11,10 @@
     <string name="settings_card_player_picture_sound">Player, decoder, HDR, volume, subtitles</string>
     <string name="settings_group_live_recording">Live TV &amp; recording</string>
     <string name="settings_card_live_recording">Preview, rewind, skip, resume, recording</string>
+    <string name="settings_section_theme_effects">Theme &amp; effects</string>
+    <string name="settings_section_text_motion">Text, size &amp; motion</string>
+    <string name="settings_section_navigation_layout">Navigation &amp; layout</string>
+    <string name="settings_section_start_home">Start &amp; Home</string>
+    <string name="settings_section_menus_remote">Menus &amp; remote</string>
+    <string name="settings_section_updates">Updates</string>
 </resources>

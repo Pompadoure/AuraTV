@@ -742,9 +742,16 @@ internal fun VideoPlayerGroupRows(
             focusRequester = rowReturnFocus,
         ),
     ) {
+        val folds = rememberCollapsedSections()
         group.parts.forEachIndexed { partIndex, (headingRes, sections) ->
-            StageSettingsHeading(stringResource(headingRes), sections.sumOf { counts[it] }, first = firstHeading && partIndex == 0)
-            sections.forEach { section ->
+            // A jump from search or a Quick pin names a row, so the sections open to show it.
+            val foldKey = group.name + "#" + partIndex
+            val folded = folds.isCollapsed(foldKey) && focusRowKey == null
+            StageSettingsHeading(
+                stringResource(headingRes), sections.sumOf { counts[it] }, first = firstHeading && partIndex == 0,
+                collapsed = folded, onToggle = { folds.toggle(foldKey) },
+            )
+            if (!folded) sections.forEach { section ->
                 when (section) {
                     SECTION_PLAYER -> {
         KeyedSettingRow(

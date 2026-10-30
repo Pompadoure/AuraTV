@@ -597,7 +597,40 @@ private fun Int.mpxSpLine() = with(androidx.compose.ui.platform.LocalDensity.cur
  * [first] = the page's first heading (2 px above instead of 18).
  */
 @Composable
-fun StageSettingsHeading(text: String, count: Int?, first: Boolean = false) {
+fun StageSettingsHeading(
+    text: String,
+    count: Int?,
+    first: Boolean = false,
+    /** Aura: with [onToggle] the heading is a focusable fold control; [collapsed] says which way the chevron points. */
+    collapsed: Boolean = false,
+    onToggle: (() -> Unit)? = null,
+) {
+    if (onToggle != null) {
+        StageSurface(
+            onClick = onToggle,
+            radius = 14.mpx,
+            modifier = Modifier.padding(top = if (first) 2.mpx else 14.mpx, bottom = 6.mpx).fillMaxWidth(),
+            focusStyle = StageFocus.FX,
+        ) { focused ->
+            Row(
+                Modifier.padding(horizontal = 22.mpx, vertical = 11.mpx),
+                horizontalArrangement = Arrangement.spacedBy(12.mpx),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OwnTVIcon(
+                    if (collapsed) OwnTVIcon.CHEVRON else OwnTVIcon.CHEVRON_DOWN,
+                    if (focused) StageColors.Text else StageColors.Muted,
+                    Modifier.size(20.mpx),
+                )
+                Text(
+                    text.uppercase(), style = stageText(16, 800, 0.13.em),
+                    color = if (focused) StageColors.Text else StageColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+                if (count != null) Text(count.toString(), style = stageText(16, 800, 0.13.em), color = HeadingCount, maxLines = 1)
+            }
+        }
+        return
+    }
     Row(
         Modifier.padding(start = 22.mpx, top = if (first) 2.mpx else 18.mpx, bottom = 8.mpx),
         horizontalArrangement = Arrangement.spacedBy(10.mpx),
@@ -606,6 +639,28 @@ fun StageSettingsHeading(text: String, count: Int?, first: Boolean = false) {
         // A heading over a single setting carries no count (Home's NOW TRENDING).
         if (count != null) Text(count.toString(), style = stageText(13, 800, 0.13.em), color = HeadingCount, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
+}
+
+/** Aura: which settings sections the user folded, remembered across launches. */
+class CollapsedSections internal constructor(private val prefs: android.content.SharedPreferences) {
+    private var folded by mutableStateOf(prefs.getStringSet(PREF_KEY, emptySet()).orEmpty().toSet())
+
+    fun isCollapsed(key: String): Boolean = key in folded
+
+    fun toggle(key: String) {
+        folded = if (key in folded) folded - key else folded + key
+        prefs.edit().putStringSet(PREF_KEY, folded).apply()
+    }
+
+    private companion object {
+        const val PREF_KEY = "folded_sections"
+    }
+}
+
+@Composable
+fun rememberCollapsedSections(): CollapsedSections {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    return remember { CollapsedSections(context.getSharedPreferences("aura_settings_ui", android.content.Context.MODE_PRIVATE)) }
 }
 
 private val HeadingCount: Color @Composable get() = stageTone(Color(0xFF4D5955), Color(0xFFA3AEA9))
