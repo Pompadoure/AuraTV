@@ -943,6 +943,12 @@ class EpgViewModel(
                 historyDao.getForProfileType(pid, MediaType.LIVE).mapTo(HashSet()) { it.itemId }
             else -> null
         }
+        // Aura: the Favorites category follows the user's own order (Live TV list and TiviMate import), not the
+        // guide sort mode, so the guide and the list show the same sequence.
+        val favoriteRank: Map<Long, Int>? = if (filter == tv.own.owntv.core.live.LiveKey.Favorites) {
+            channelDao.snapshotFavoritesManual(pid, tv.own.owntv.core.database.entity.ContentOrderEntity.FAV_CONTEXT, playlistIds, MAX_CHANNELS)
+                .withIndex().associate { it.value.id to it.index }
+        } else null
         // Heavy work — filter hidden, apply renames + manual EPG matches, sort, category-filter — runs off
         // the main thread (#3/#5) so a 50k-channel playlist never freezes the UI building the guide list.
         val channels = withContext(Dispatchers.Default) {
@@ -972,6 +978,7 @@ class EpgViewModel(
                         ch.categoryId == filter.id && (folderKey == null || cust.movedFromOrigin[CustomizeKeys.channel(ch)] != folderKey)
                     }
                     else -> sorted.filter { it.id in memberIds.orEmpty() }
+                        .let { picked -> if (favoriteRank == null) picked else picked.sortedBy { favoriteRank[it.id] ?: Int.MAX_VALUE } }
                 }
             }
         }
