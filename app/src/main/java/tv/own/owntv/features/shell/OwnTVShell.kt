@@ -1118,9 +1118,11 @@ fun OwnTVShell(
               // let the new destination compose first; if it has nothing focusable yet, focus stays put.
               if (section != MainSection.SEARCH) {
                   scope.launch {
-                      withFrameNanos { }
-                      withFrameNanos { }
-                      runCatching { contentAreaFocus.requestFocus() }
+                      // Content such as Home or Movies fills in asynchronously: try for about a second.
+                      repeat(16) {
+                          kotlinx.coroutines.delay(60)
+                          if (runCatching { contentAreaFocus.requestFocus() }.getOrDefault(false)) return@launch
+                      }
                   }
               }
           }

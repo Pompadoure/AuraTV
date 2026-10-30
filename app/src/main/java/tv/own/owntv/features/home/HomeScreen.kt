@@ -672,10 +672,8 @@ private fun rowHasData(row: HomeRow, state: HomeUiState, sportsCards: Int): Bool
         HomeLiveRowMode.CARDS -> state.recentLive.isNotEmpty()
         HomeLiveRowMode.ON_NOW -> state.recentGuide.hasContent
     }
-    HomeRow.FAVORITE_CHANNELS -> when (state.config.favoriteLiveMode) {
-        HomeLiveRowMode.CARDS -> state.favoriteLive.isNotEmpty()
-        HomeLiveRowMode.ON_NOW -> state.favoriteGuide.hasContent
-    }
+    // Aura: the slot is the On now programme list, shown for any favourite channel (guide data or not).
+    HomeRow.FAVORITE_CHANNELS -> state.favoriteLive.isNotEmpty() || state.favoriteGuide.hasContent
     HomeRow.FAVORITE_MOVIES -> state.favoriteMovies.isNotEmpty()
     HomeRow.FAVORITE_SERIES -> state.favoriteSeries.isNotEmpty()
     HomeRow.CONTINUE_MOVIES -> state.continueMovies.isNotEmpty()

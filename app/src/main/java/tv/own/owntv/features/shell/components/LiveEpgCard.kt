@@ -239,6 +239,7 @@ fun LiveProgrammePanel(epg: EpgNowNext?, modifier: Modifier = Modifier) {
     var wallNow by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(20_000); wallNow = System.currentTimeMillis() } }
     val accent = tv.own.owntv.ui.theme.stageAccent.accent
+    val sep = stringResource(R.string.content_epg_bits_separator)
     Column(modifier.widthIn(max = 980.dp)) {
         epg.now?.let { entry ->
             val remaining = ((entry.stopMs - wallNow) / 60_000L).toInt()
@@ -250,7 +251,7 @@ fun LiveProgrammePanel(epg: EpgNowNext?, modifier: Modifier = Modifier) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 tv.own.owntv.ui.components.OwnTVIcon(tv.own.owntv.ui.components.OwnTVIcon.CLOCK, accent, Modifier.size(22.dp))
                 Text(
-                    stringResource(R.string.content_live_now).uppercase() + " · " + timing,
+                    stringResource(R.string.content_live_now).uppercase() + sep + timing,
                     style = tv.own.owntv.ui.theme.stageText(22, 700), color = accent,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
@@ -261,7 +262,7 @@ fun LiveProgrammePanel(epg: EpgNowNext?, modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
             )
             val d = epg.nowDetails
-            val details = d?.let { (it.categoryList + listOfNotNull(it.episode, it.year?.toString(), it.rating)).takeIf { l -> l.isNotEmpty() }?.joinToString(" · ") }
+            val details = d?.let { (it.categoryList + listOfNotNull(it.episode, it.year?.toString(), it.rating)).takeIf { l -> l.isNotEmpty() }?.joinToString(sep) }
             if (details != null) {
                 Text(details, style = tv.own.owntv.ui.theme.stageText(22, 500), color = hudInk.copy(alpha = 0.6f), maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
@@ -286,7 +287,7 @@ fun LiveProgrammePanel(epg: EpgNowNext?, modifier: Modifier = Modifier) {
             Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 SlotLabel(stringResource(R.string.content_live_next), hudInk.copy(alpha = 0.5f))
                 Text(
-                    entry.title + " · " + stringResource(R.string.content_live_time_range, formatTime(entry.startMs), formatTime(entry.stopMs)),
+                    entry.title + sep + stringResource(R.string.content_live_time_range, formatTime(entry.startMs), formatTime(entry.stopMs)),
                     style = tv.own.owntv.ui.theme.stageText(24, 500), color = hudInk.copy(alpha = 0.75f),
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
