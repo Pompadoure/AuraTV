@@ -57,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import org.koin.androidx.compose.koinViewModel
@@ -362,7 +363,7 @@ fun EpgScreen(
         focusGrid(restoreRow)
         // Done when focus really is in the grid (or after a moment, so a grid that cannot take it does not
         // hold the display in restore mode).
-        kotlinx.coroutines.withTimeoutOrNull(700) { kotlinx.coroutines.flow.first(androidx.compose.runtime.snapshotFlow { gridHasFocus }) { it } }
+        kotlinx.coroutines.withTimeoutOrNull(700) { androidx.compose.runtime.snapshotFlow { gridHasFocus }.first { it } }
         TransitionLog.mark("guide focus restored")
         onRestored()
     }
