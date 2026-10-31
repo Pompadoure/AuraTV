@@ -117,7 +117,7 @@ jobs:
       # Remove this step when the pin catches up (see CLAUDE.md).
       - name: Use AuraTV_Core source (our fork, branch aura)
         env:
-          CORE_SHA: d349299eceeb1135c2893a0ac320bca40b4e33e3
+          CORE_SHA: 81b2ac4b4f026abbda81022b81c5c3bd6450b7f7
         run: |
           git init -q "$RUNNER_TEMP/core-src"
           git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/Pompadoure/AuraTV_Core.git "$CORE_SHA"
@@ -203,7 +203,7 @@ jobs:
       # Remove this step when the pin catches up (see CLAUDE.md).
       - name: Use AuraTV_Core source (our fork, branch aura)
         env:
-          CORE_SHA: d349299eceeb1135c2893a0ac320bca40b4e33e3
+          CORE_SHA: 81b2ac4b4f026abbda81022b81c5c3bd6450b7f7
         run: |
           git init -q "$RUNNER_TEMP/core-src"
           git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/Pompadoure/AuraTV_Core.git "$CORE_SHA"
@@ -217,14 +217,14 @@ jobs:
           if [ "$IS_TAG" = "true" ]; then
             NAME="${GITHUB_REF_NAME#v}"                 # tag v1.2.0 -> 1.2.0
             IFS='.' read -r MA MI PA <<< "$NAME"
-            CODE=$(( ${MA:-0} * 10000 + ${MI:-0} * 100 + ${PA:-0} ))   # 1.2.0 -> 10200
-            [ "$CODE" -gt 0 ] || CODE=1
+            # Offset 1,000,000 keeps a tagged release above every dev build (100,000 + run number).
+            CODE=$(( 1000000 + ${MA:-0} * 10000 + ${MI:-0} * 100 + ${PA:-0} ))   # 1.2.0 -> 1010200
           else
-            # Dev (non-tag) builds mirror the local-build fallback in app/build.gradle.kts:
-            # pinned HIGH so a dev APK always installs over any published release
-            # (no INSTALL_FAILED_VERSION_DOWNGRADE) and the in-app updater stays quiet.
-            NAME="99.99.99"
-            CODE=99999
+            # Dev (non-tag) builds: 1.0.<CI run number>. The code stays above the 99999 that the first
+            # Aura TV dev builds shipped with (a lower code would be refused as a downgrade) and rises
+            # with every run. The in-app updater tells dev builds apart by commit, not by version.
+            NAME="1.0.${GITHUB_RUN_NUMBER}"
+            CODE=$(( 100000 + GITHUB_RUN_NUMBER ))
           fi
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "code=$CODE" >> "$GITHUB_OUTPUT"

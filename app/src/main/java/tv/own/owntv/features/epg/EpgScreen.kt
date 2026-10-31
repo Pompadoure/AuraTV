@@ -197,6 +197,8 @@ fun EpgScreen(
     onPlayCatchup: (channel: ChannelEntity, programme: EpgProgrammeEntity) -> Unit,
     /** False while the full-screen or mini player owns the video surface. */
     previewEnabled: Boolean = true,
+    /** Full screen -> preview hand-over: build the preview's own surface while the player still covers it. */
+    previewSurfaceEarly: Boolean = false,
     liveMode: Boolean = false,
     onListView: () -> Unit = {},
     /** How ▶ from the rail enters the guide: at the grid row focus was on (the rail's entry hook, as Home's). */
@@ -505,7 +507,7 @@ fun EpgScreen(
             channelLine = videoChannel?.let { listOfNotNull(it.number?.toString(), ProviderTags.parse(it.name).name).joinToString(" · ") },
             nowTitle = videoChannel?.let { ch -> programmeAt(vm.cachedProgrammes(ch), liveNow)?.takeIf { liveNow < it.stopMs }?.title },
             previewEngine = liveVm.previewEngine,
-            showVideo = effectivePreview && previewArmed,
+            showVideo = (effectivePreview || previewSurfaceEarly) && previewArmed,
             modifier = Modifier.width(640.mpx),
         )
         // … and the programme under the cursor, with what it can do.

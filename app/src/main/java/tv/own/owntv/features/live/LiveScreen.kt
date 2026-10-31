@@ -97,6 +97,8 @@ fun LiveScreen(
     onFullscreen: () -> Unit,
     onChildFocused: () -> Unit,
     previewEnabled: Boolean = true,
+    /** Full screen -> preview hand-over: build the preview's own surface while the player still covers it. */
+    previewSurfaceEarly: Boolean = false,
     restoreFocus: Boolean = false,
     onRestored: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -876,7 +878,7 @@ fun LiveScreen(
                 channelName = previewChannel?.let { ProviderTags.parse(it.name).name },
                 nowNext = nowNext,
                 previewEngine = vm.previewEngine,
-                showVideo = effectivePreview,
+                showVideo = effectivePreview || (previewSurfaceEarly && livePreviewSetting),
                 singleSessionBlocked = previewBlockedSingleSession,
                 scheduleFocus = scheduleFocus,
                 onOpenProgramme = { p -> previewChannel?.let { openProgramme = it to p } },

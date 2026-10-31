@@ -48,14 +48,12 @@ android {
         minSdk = 26
         targetSdk = 36
         // CI injects these from the git tag (see .github/workflows/android.yml) so releases never
-        // need a manual edit here. The fallbacks are only used for local/debug builds — pinned HIGH
-        // (99999, mirroring versionName 99.99.99) so a local/debug APK is always "newer" than any
-        // published release and installs straight over it (no INSTALL_FAILED_VERSION_DOWNGRADE).
-        versionCode = (System.getenv("VERSION_CODE") ?: "99999").toInt()
-        // CI injects VERSION_NAME from the git tag for releases. The fallback is only ever used by
-        // LOCAL builds (i.e. debug), so we pin it to 99.99.99 — that way a dev build is always "newer"
-        // than any published release and the in-app updater never offers an "update" while developing.
-        versionName = System.getenv("VERSION_NAME") ?: "99.99.99"
+        // need a manual edit here. The fallbacks are only used for local/debug builds, and sit above the
+        // code the first Aura TV dev builds shipped with (99999) so they can still install over them.
+        versionCode = (System.getenv("VERSION_CODE") ?: "100000").toInt()
+        // CI injects VERSION_NAME (1.0.<run number> for dev builds, the tag for releases). The fallback is
+        // only ever used by LOCAL builds; the in-app updater ignores them (no build commit).
+        versionName = System.getenv("VERSION_NAME") ?: "0.0.0-local"
 
         // The commit this APK was built from (CI sets GITHUB_SHA). The in-app updater compares it with
         // the rolling "dev" release's commit; blank for local builds, which then never offer an update.

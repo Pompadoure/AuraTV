@@ -180,6 +180,8 @@ fun OwnTVShell(
     var restoreFocus by remember { mutableStateOf(false) }
     // Back from full screen to the Live TV guide: until the guide has taken focus the rail must not, or the
     // cursor visibly walks rail → channel → programme. Cleared by the guide's onRestored (and by a timeout).
+    // True for the last moments of the shrink: the preview builds its own surface under the player.
+    var previewSurfaceEarly by remember { mutableStateOf(false) }
     var returningToGuide by remember { mutableStateOf(false) }
     // The full-screen player's travel between the guide's preview rectangle and the window (see FullscreenFrame).
     val frame = remember { FullscreenFrame() }
@@ -706,7 +708,19 @@ fun OwnTVShell(
                     androidx.compose.runtime.snapshotFlow { restoreFocus }.first { !it }
                 }
                 shrink?.join()
-                if (playerMode == PlayerMode.FULLSCREEN) finishExitPlayer(handedOver = true)
+                if (playerMode == PlayerMode.FULLSCREEN) {
+                    // Hand the picture to the preview's own surface BEFORE the player lets go: the player's
+                    // last frame stays on screen (it covers the preview) until the preview has drawn its
+                    // first frame, so there is no black gap between the two surfaces.
+                    if (animate && liveVm.livePreviewEnabled.value && liveVm.previewArmed.value) {
+                        val tick = liveVm.previewEngine.renderedFrameTick
+                        val before = tick.value
+                        previewSurfaceEarly = true
+                        kotlinx.coroutines.withTimeoutOrNull(350) { tick.first { it != before } }
+                    }
+                    finishExitPlayer(handedOver = true)
+                }
+                previewSurfaceEarly = false
                 frame.active = false
                 frame.exiting = false
                 frame.progress = 1f
@@ -1508,6 +1522,7 @@ fun OwnTVShell(
                             onPlayCatchup = guidePlayCatchup,
                             onAddEpg = { openEpgAdd = true; onSelectSection(MainSection.SETTINGS) },
                             previewEnabled = playerMode == PlayerMode.NONE,
+                            previewSurfaceEarly = previewSurfaceEarly,
                             liveMode = true,
                             onEntryHook = { guideEntry = it },
                             onListView = { liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.LIST) },
@@ -1524,6 +1539,7 @@ fun OwnTVShell(
                             onOpenGuide = { liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.GUIDE) },
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                             previewEnabled = playerMode == PlayerMode.NONE,
+                            previewSurfaceEarly = previewSurfaceEarly,
                             restoreFocus = restoreFocus,
                             onRestored = { restoreFocus = false; returningToGuide = false },
                             modifier = Modifier.fillMaxSize(),
@@ -1573,6 +1589,7 @@ fun OwnTVShell(
                             onPlayChannel = guidePlayChannel,
                             onPlayCatchup = guidePlayCatchup,
                             previewEnabled = playerMode == PlayerMode.NONE,
+                            previewSurfaceEarly = previewSurfaceEarly,
                             onEntryHook = { guideEntry = it },
                             onAddEpg = { openEpgAdd = true; onSelectSection(MainSection.SETTINGS) },
                             restoreFocus = restoreFocus,
