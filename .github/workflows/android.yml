@@ -115,12 +115,12 @@ jobs:
       # release is published and the pin bumped, build against core's source at the exact commit upstream
       # verified 2de7883 with (owntv.corePath, the composite build settings.gradle.kts supports).
       # Remove this step when the pin catches up (see CLAUDE.md).
-      - name: Use OwnTV_Core source (pin is behind upstream)
+      - name: Use AuraTV_Core source (our fork, branch aura)
         env:
-          CORE_SHA: 38f30e6768bab28bddf3c2a6847788ccfb84358e
+          CORE_SHA: 595a393985a82be7a25c00073d9371eb11b10d3f
         run: |
           git init -q "$RUNNER_TEMP/core-src"
-          git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/ahXN00/OwnTV_Core.git "$CORE_SHA"
+          git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/Pompadoure/AuraTV_Core.git "$CORE_SHA"
           git -C "$RUNNER_TEMP/core-src" checkout -q FETCH_HEAD
           mkdir -p "$HOME/.gradle"
           echo "owntv.corePath=$RUNNER_TEMP/core-src" >> "$HOME/.gradle/gradle.properties"
@@ -201,12 +201,12 @@ jobs:
       # release is published and the pin bumped, build against core's source at the exact commit upstream
       # verified 2de7883 with (owntv.corePath, the composite build settings.gradle.kts supports).
       # Remove this step when the pin catches up (see CLAUDE.md).
-      - name: Use OwnTV_Core source (pin is behind upstream)
+      - name: Use AuraTV_Core source (our fork, branch aura)
         env:
-          CORE_SHA: 38f30e6768bab28bddf3c2a6847788ccfb84358e
+          CORE_SHA: 595a393985a82be7a25c00073d9371eb11b10d3f
         run: |
           git init -q "$RUNNER_TEMP/core-src"
-          git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/ahXN00/OwnTV_Core.git "$CORE_SHA"
+          git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/Pompadoure/AuraTV_Core.git "$CORE_SHA"
           git -C "$RUNNER_TEMP/core-src" checkout -q FETCH_HEAD
           mkdir -p "$HOME/.gradle"
           echo "owntv.corePath=$RUNNER_TEMP/core-src" >> "$HOME/.gradle/gradle.properties"
