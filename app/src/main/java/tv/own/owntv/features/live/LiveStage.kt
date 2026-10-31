@@ -1,5 +1,6 @@
 package tv.own.owntv.features.live
 
+import tv.own.owntv.features.shell.reportPreviewBounds
 import tv.own.owntv.ui.theme.stageTone
 import tv.own.owntv.ui.theme.stageShadow
 import androidx.compose.foundation.background
@@ -273,6 +274,7 @@ internal fun LiveStagePane(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
+                .reportPreviewBounds()
                 .drawBehind {
                     drawBoxShadow(videoShadow, 80.mpx.toPx(), videoR.toPx(), dy = 30.mpx.toPx())
                 }

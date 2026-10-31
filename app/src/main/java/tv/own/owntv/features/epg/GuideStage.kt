@@ -46,6 +46,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
+import tv.own.owntv.features.shell.reportPreviewBounds
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -121,6 +122,7 @@ internal fun GuideVideo(
     Box(
         modifier
             .aspectRatio(16f / 9f)
+            .reportPreviewBounds()
             .drawBehind { drawBoxShadow(videoShadow, 80.mpx.toPx(), r.toPx(), dy = 30.mpx.toPx()) }
             .clip(RoundedCornerShape(r))
             .background(Color.Black),
