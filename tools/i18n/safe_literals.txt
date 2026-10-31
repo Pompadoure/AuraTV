@@ -635,6 +635,7 @@
 3	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	\0
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	ass
 2	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	aura_defaults
+1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	browseAlpha
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	epg-preload
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	exit player
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	exit player done

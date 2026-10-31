@@ -635,13 +635,8 @@ fun OwnTVShell(
     }
     // The mini-player's own expand button always maximizes.
     val expandPlayer = { resumeVideo(); restoreFocus = false; playerMode = PlayerMode.FULLSCREEN }
-    val exitPlayer = {
-        tv.own.owntv.features.epg.TransitionLog.begin("exit player")
-        // Flush the resume position BEFORE the stream is torn down — stop() drops the loaded item's
-        // identity, after which neither view model can tell the position was theirs. Both calls are
-        // no-ops unless the player is on that section's item.
-        movieVm.saveProgressNow()
-        seriesVm.saveEpisodeProgressNow()
+    // The tear-down proper: the player leaves, the browse UI is shown.
+    val finishExitPlayer = {
         resumeVideo() // restore mpv `vid=auto` before stop so the next played item isn't left video-less
         playerMode = PlayerMode.NONE
         showChannelList = false
@@ -657,6 +652,30 @@ fun OwnTVShell(
         // so the rail must not take it and expand for a moment.
         if (selectedSection != MainSection.LIVE_TV) focusRail()
         tv.own.owntv.features.epg.TransitionLog.mark("exit player done")
+        Unit
+    }
+    val exitPlayer = {
+        tv.own.owntv.features.epg.TransitionLog.begin("exit player")
+        // Flush the resume position BEFORE the stream is torn down — stop() drops the loaded item's
+        // identity, after which neither view model can tell the position was theirs. Both calls are
+        // no-ops unless the player is on that section's item.
+        movieVm.saveProgressNow()
+        seriesVm.saveEpisodeProgressNow()
+        if (selectedSection == MainSection.LIVE_TV && playerMode == PlayerMode.FULLSCREEN) {
+            // The guide waits composed (but unseen) behind the player. Focus moves into it FIRST, while the
+            // player is still on screen; only then does the player go. Removing the focused player node
+            // used to leave focus to fall wherever the system put it (the rail), and the cursor walked
+            // rail → channel → programme. Now focus is already on the programme when the player leaves.
+            returningToGuide = true
+            restoreFocus = true
+            scope.launch {
+                withFrameNanos { }
+                withFrameNanos { }
+                if (playerMode == PlayerMode.FULLSCREEN) finishExitPlayer()
+            }
+        } else {
+            finishExitPlayer()
+        }
         Unit
     }
     SealedPlaybackEffect(shellVm, liveVm, movieVm, seriesVm, player, { currentMultiview }, exitPlayer)
@@ -1132,10 +1151,25 @@ fun OwnTVShell(
       // device; now it is already there and only has to be shown. Other sections are still dropped.
       val keepLiveBehind = playerMode == PlayerMode.FULLSCREEN && selectedSection == MainSection.LIVE_TV
       if (playerMode != PlayerMode.FULLSCREEN || keepLiveBehind) {
+       // The guide fades and settles back into place when the player leaves (200 ms, GPU only: alpha and
+       // scale on one layer). Animations Off skips it.
+       val browseAlpha by androidx.compose.animation.core.animateFloatAsState(
+           targetValue = if (keepLiveBehind) 0f else 1f,
+           animationSpec = androidx.compose.animation.core.tween(
+               if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF || keepLiveBehind) 0 else 200,
+           ),
+           label = "browseAlpha",
+       )
        Box(
-        if (keepLiveBehind) Modifier.fillMaxSize()
-            .graphicsLayer { alpha = 0f }
-            .focusProperties { canFocus = false }
+        if (keepLiveBehind || browseAlpha < 1f) Modifier.fillMaxSize()
+            .graphicsLayer {
+                alpha = browseAlpha
+                val z = 1f + (1f - browseAlpha) * 0.025f
+                scaleX = z
+                scaleY = z
+            }
+            // Focusable only while the player hands focus over (see exitPlayer); never behind it otherwise.
+            .focusProperties { canFocus = !keepLiveBehind || returningToGuide }
         else Modifier.fillMaxSize(),
        ) {
         Column(
@@ -2063,6 +2097,21 @@ fun OwnTVShell(
             }
         }
       }
+      // Entering full screen: the picture fades up from dark instead of cutting (160 ms, one Compose layer
+      // above the video; Animations Off skips it). Takes no input.
+      val entryScrim = remember { androidx.compose.animation.core.Animatable(0f) }
+      LaunchedEffect(playerMode == PlayerMode.FULLSCREEN) {
+          if (playerMode == PlayerMode.FULLSCREEN && shellAnimationLevel != tv.own.owntv.core.theme.AnimationLevel.OFF) {
+              entryScrim.snapTo(0.9f)
+              entryScrim.animateTo(0f, androidx.compose.animation.core.tween(160))
+          } else {
+              entryScrim.snapTo(0f)
+          }
+      }
+      if (entryScrim.value > 0.01f && playerMode == PlayerMode.FULLSCREEN) {
+          Box(Modifier.fillMaxSize().graphicsLayer { alpha = entryScrim.value }.background(Color.Black))
+      }
+
 
     if (showExit) {
         ExitDialog(onConfirm = onExitApp, onDismiss = { showExit = false })
