@@ -233,7 +233,8 @@ fun EpgScreen(
     // Live TV's Guide view shows Live TV's own category; the TV Guide keeps its own choice.
     val categoryKey: LiveKey? = if (liveMode) liveSelected.takeUnless { it == LiveKey.All } else categoryFilter
     LaunchedEffect(liveMode, liveSelected) { if (liveMode) vm.setCategoryFilter(liveSelected) }
-    LaunchedEffect(Unit) { vm.load() } // reload from DB each time the guide is opened
+    // Reload from the DB when the guide is opened, unless it was loaded a moment ago (back from fullscreen).
+    LaunchedEffect(Unit) { TransitionLog.mark("guide composed"); vm.loadIfStale() }
 
     // The preview stays on its channel while the guide is browsed; OK on a row brings that row's channel
     // into it, and OK again on the channel already there watches it full screen. Following the focus made
@@ -248,6 +249,7 @@ fun EpgScreen(
         // The guide changes its preview only on an explicit OK (never by following the focus), so there is no
         // browsing to wait out; 150 ms only coalesces two quick OKs. It was 700 ms.
         delay(150)
+        TransitionLog.mark("guide preview requested")
         liveVm.playPreview(ch)
     }
 
@@ -344,6 +346,7 @@ fun EpgScreen(
         focusedRow = idx
         delay(80)
         focusGrid(idx)
+        TransitionLog.mark("guide focus restored")
         onRestored()
     }
 

@@ -861,6 +861,20 @@ class EpgViewModel(
      * an OutOfMemoryError. Cancelling the one in progress makes the answer the latest one rather than
      * a race between six stale ones, and the mutex closes the gap while a cancelled load unwinds.
      */
+    /** When the last load finished (elapsedRealtime), so re-entering the guide can skip a reload it does not need. */
+    @Volatile private var lastLoadedAt = 0L
+
+    /**
+     * [load], unless the grid on screen is already populated and was loaded moments ago. Coming back from
+     * fullscreen re-opened the guide and replaced its whole state with an identical one, recomposing every
+     * row for nothing. Anything that changes what the grid shows (filter, search, order) calls [load] itself.
+     */
+    fun loadIfStale(maxAgeMs: Long = 60_000L) {
+        val fresh = _state.value.channels.isNotEmpty() && lastLoadedAt != 0L &&
+            android.os.SystemClock.elapsedRealtime() - lastLoadedAt < maxAgeMs
+        if (!fresh) load()
+    }
+
     fun load() {
         val previous = loadJob
         loadJob = viewModelScope.launch {
@@ -1030,6 +1044,7 @@ class EpgViewModel(
             channels = channels, windowStart = windowStart, windowEnd = windowEnd, now = now,
             loading = false, message = message, hasEpgSources = hasEpg,
         )
+        lastLoadedAt = android.os.SystemClock.elapsedRealtime()
 
         tv.own.owntv.core.CorePerf.log {
             "guide_load channels=${channels.size} rawChannels=${rawChannels.size} " +

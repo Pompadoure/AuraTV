@@ -629,6 +629,7 @@ fun OwnTVShell(
     // The mini-player's own expand button always maximizes.
     val expandPlayer = { resumeVideo(); restoreFocus = false; playerMode = PlayerMode.FULLSCREEN }
     val exitPlayer = {
+        tv.own.owntv.features.epg.TransitionLog.begin("exit player")
         // Flush the resume position BEFORE the stream is torn down — stop() drops the loaded item's
         // identity, after which neither view model can tell the position was theirs. Both calls are
         // no-ops unless the player is on that section's item.
@@ -645,6 +646,7 @@ fun OwnTVShell(
         if (selectedSection != MainSection.LIVE_TV) liveVm.clearLiveOnExo()
         restoreFocus = true
         focusRail()
+        tv.own.owntv.features.epg.TransitionLog.mark("exit player done")
         Unit
     }
     SealedPlaybackEffect(shellVm, liveVm, movieVm, seriesVm, player, { currentMultiview }, exitPlayer)
