@@ -279,9 +279,6 @@ fun EpgScreen(
     fun rowFocus(i: Int): FocusRequester = rowRequesters.getOrPut(i) { FocusRequester() }
     var focusedRow by remember { mutableIntStateOf(0) }
     var gridHasFocus by remember { mutableStateOf(false) }
-    // True while a Back-from-fullscreen restore is moving focus into the grid, so the key hints already show
-    // the cell-mode set instead of flipping from the row-mode set once focus lands.
-    var restoringFocus by remember { mutableStateOf(false) }
     var cursorTime by remember { mutableStateOf(0L) }
     // Row stage (false): ▲ ▼ move between channels, ◀ leaves for the menu. Cell stage (true): ◀ ▶ go
     // through the programmes. Without it, reaching the channel list meant ◀ past every programme.
@@ -338,26 +335,34 @@ fun EpgScreen(
         }
     }
 
-    // Back from a channel tuned in the guide: its row again, once the reload has the grid on screen.
-    LaunchedEffect(restoreFocus, state.loading, state.channels.size) {
-        if (!restoreFocus || state.loading || state.channels.isEmpty()) return@LaunchedEffect
-        // The channel actually playing wins: zapping in fullscreen (CH+/-, Up/Down, digits) moves it without
-        // the guide knowing, so the guide's own last pick would put the highlight on a stale row, or on the top.
-        val idx = listOfNotNull(liveVm.previewChannel.value?.id, vm.lastTunedChannelId).firstNotNullOfOrNull { id ->
+    // Where Back from a channel lands: the row of the channel actually playing (zapping in fullscreen moves it
+    // without the guide knowing) and the present moment, in cell mode. Worked out during composition, so the very
+    // first frame after the player closes already draws it. Focus then follows; the cursor never walks
+    // rail → channel → programme.
+    val restoreRow = remember(restoreFocus, state.loading, state.channels.size) {
+        if (!restoreFocus || state.loading || state.channels.isEmpty()) -1
+        else listOfNotNull(liveVm.previewChannel.value?.id, vm.lastTunedChannelId).firstNotNullOfOrNull { id ->
             state.channels.indexOfFirst { it.id == id }.takeIf { it >= 0 }
         } ?: 0
-        focusedRow = idx
-        // Back from fullscreen lands on the programme that is on now, in the row of the channel playing, not on
-        // the bare channel: the cursor goes to the present moment and the row enters cell mode.
-        cursorTime = System.currentTimeMillis()
+    }
+    val restoring = restoreRow >= 0
+    val restoreTime = remember(restoreFocus) { System.currentTimeMillis() }
+    val shownRow = if (restoring) restoreRow else focusedRow
+    val shownCursor = if (restoring) restoreTime else cursorTime
+    val shownCell = inCellMode || restoring
+    val shownFocus = gridHasFocus || restoring
+
+    LaunchedEffect(restoreRow) {
+        if (restoreRow < 0) return@LaunchedEffect
+        focusedRow = restoreRow
+        cursorTime = restoreTime
         inCellMode = true
-        restoringFocus = true
-        try {
-            withFrameNanos { }
-            focusGrid(idx)
-        } finally {
-            restoringFocus = false
-        }
+        TransitionLog.mark("guide restore start")
+        withFrameNanos { }
+        focusGrid(restoreRow)
+        // Done when focus really is in the grid (or after a moment, so a grid that cannot take it does not
+        // hold the display in restore mode).
+        kotlinx.coroutines.withTimeoutOrNull(700) { kotlinx.coroutines.flow.first(androidx.compose.runtime.snapshotFlow { gridHasFocus }) { it } }
         TransitionLog.mark("guide focus restored")
         onRestored()
     }
@@ -482,7 +487,7 @@ fun EpgScreen(
         val timelineW = screenW - fx(48) - labelW - fx(64)
         LaunchedEffect(timelineW) { timelinePx = with(density) { timelineW.roundToPx() } }
 
-        val top = selected ?: state.channels.getOrNull(focusedRow)?.let { ch -> ch to programmeAt(vm.cachedProgrammes(ch), liveNow) }
+        val top = selected ?: state.channels.getOrNull(shownRow)?.let { ch -> ch to programmeAt(vm.cachedProgrammes(ch), liveNow) }
         val topChannel = top?.first
         val topProgramme = top?.second
         val full by produceState<EpgProgrammeEntity?>(null, topProgramme?.id) {
@@ -515,7 +520,7 @@ fun EpgScreen(
                 )
             }
             // The key hints at the bottom right of the top area, level with the video's bottom edge.
-            Box(Modifier.align(Alignment.BottomEnd)) { GuideKeyHints(cellMode = inCellMode && (gridHasFocus || restoringFocus)) }
+            Box(Modifier.align(Alignment.BottomEnd)) { GuideKeyHints(cellMode = shownCell && shownFocus) }
         }
 
         }
@@ -619,7 +624,7 @@ fun EpgScreen(
                             contentPadding = PaddingValues(bottom = 24.mpx),
                         ) {
                             itemsIndexed(state.channels, key = { _, ch -> ch.id }) { index, channel ->
-                                val focus = guideRowFocusArgs(index, focusedRow, cursorTime, inCellMode, gridHasFocus || restoringFocus)
+                                val focus = guideRowFocusArgs(index, shownRow, shownCursor, shownCell, shownFocus)
                                 GuideRow(
                                     vm = vm,
                                     channel = channel,

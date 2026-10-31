@@ -79,6 +79,7 @@
 1	log	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	guide composed
 1	log	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	guide focus restored
 1	log	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	guide preview requested
+1	log	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	guide restore start
 2	technical	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	·
 1	technical	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	▲ ▼
 1	technical	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	◀
@@ -637,6 +638,7 @@
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	epg-preload
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	exit player
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	exit player done
+1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	focus layer $focusedLayer
 1	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	home_hero_hidden_$pid
 2	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	menu_labels_when_focused
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	shell-composed

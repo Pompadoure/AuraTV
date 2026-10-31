@@ -181,6 +181,7 @@ fun OwnTVShell(
     // Back from full screen to the Live TV guide: until the guide has taken focus the rail must not, or the
     // cursor visibly walks rail → channel → programme. Cleared by the guide's onRestored (and by a timeout).
     var returningToGuide by remember { mutableStateOf(false) }
+    LaunchedEffect(focusedLayer) { if (returningToGuide) tv.own.owntv.features.epg.TransitionLog.mark("focus layer $focusedLayer") }
     LaunchedEffect(returningToGuide) { if (returningToGuide) { kotlinx.coroutines.delay(1500); returningToGuide = false } }
     var searchReturn by remember { mutableStateOf<MainSection?>(null) }
     var restoreTrendingSearchFocus by remember { mutableStateOf(false) }
