@@ -76,6 +76,9 @@
 1	empty	app/src/main/java/tv/own/owntv/features/downloads/DownloadsViewModel.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	$p
+1	log	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	guide composed
+1	log	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	guide focus restored
+1	log	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	guide preview requested
 2	technical	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	·
 1	technical	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	▲ ▼
 1	technical	app/src/main/java/tv/own/owntv/features/epg/EpgScreen.kt	◀
@@ -102,6 +105,9 @@
 1	technical	app/src/main/java/tv/own/owntv/features/epg/GuideStage.kt	· $nowTitle
 1	technical	app/src/main/java/tv/own/owntv/features/epg/GuideStage.kt	…
 1	technical	app/src/main/java/tv/own/owntv/features/epg/GuideStage.kt	→
+1	log	app/src/main/java/tv/own/owntv/features/epg/TransitionLog.kt	$step +${SystemClock.elapsedRealtime() - t0}ms
+1	log	app/src/main/java/tv/own/owntv/features/epg/TransitionLog.kt	$step +0ms
+1	log	app/src/main/java/tv/own/owntv/features/epg/TransitionLog.kt	OwnTV-Transition
 1	technical	app/src/main/java/tv/own/owntv/features/home/HomeScreen.kt	%.1f
 1	technical	app/src/main/java/tv/own/owntv/features/home/HomeScreen.kt	,
 1	technical	app/src/main/java/tv/own/owntv/features/home/HomeScreen.kt	episode:${episode.id}
@@ -623,6 +629,8 @@
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	ass
 2	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	aura_defaults
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	epg-preload
+1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	exit player
+1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	exit player done
 1	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	home_hero_hidden_$pid
 2	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	menu_labels_when_focused
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	shell-composed
