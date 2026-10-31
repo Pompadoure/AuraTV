@@ -109,6 +109,10 @@ class OwnTVApp : Application(), SingletonImageLoader.Factory, androidx.work.Conf
         // repository instead of relying on core to guess it, the same as the phone app does. A
         // default that happens to be right for one app is a trap for every other one.
         tv.own.owntv.core.CoreBuildInfo.releaseRepo = "Pompadoure/AuraTV"
+        // Every build of main is published to the rolling "dev" pre-release with the same versionName,
+        // so the updater tells builds apart by commit (see CoreBuildInfo.rollingReleaseTag).
+        tv.own.owntv.core.CoreBuildInfo.rollingReleaseTag = "dev"
+        tv.own.owntv.core.CoreBuildInfo.buildCommit = BuildConfig.GIT_SHA
         // Fixed for this process before any player exists: the setting applies only after a restart.
         tv.own.owntv.core.player.FfmpegAudioSetting.load(this)
         // First thing after the context exists: a crash from here on leaves a trace on disk that the

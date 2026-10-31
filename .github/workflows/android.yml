@@ -117,7 +117,7 @@ jobs:
       # Remove this step when the pin catches up (see CLAUDE.md).
       - name: Use AuraTV_Core source (our fork, branch aura)
         env:
-          CORE_SHA: 595a393985a82be7a25c00073d9371eb11b10d3f
+          CORE_SHA: 09c64d99e8d6e56012a6239dd2a209510649d051
         run: |
           git init -q "$RUNNER_TEMP/core-src"
           git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/Pompadoure/AuraTV_Core.git "$CORE_SHA"
@@ -203,7 +203,7 @@ jobs:
       # Remove this step when the pin catches up (see CLAUDE.md).
       - name: Use AuraTV_Core source (our fork, branch aura)
         env:
-          CORE_SHA: 595a393985a82be7a25c00073d9371eb11b10d3f
+          CORE_SHA: 09c64d99e8d6e56012a6239dd2a209510649d051
         run: |
           git init -q "$RUNNER_TEMP/core-src"
           git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/Pompadoure/AuraTV_Core.git "$CORE_SHA"
@@ -374,7 +374,7 @@ jobs:
 
       # Rolling pre-release so a fresh main build has a public, fixed URL the TV's own tooling can fetch:
       # https://github.com/Pompadoure/AuraTV/releases/download/dev/AuraTV-dev.apk
-      # Pre-releases never count as "latest", so the in-app updater is unaffected.
+      # The in-app updater reads this release (CoreBuildInfo.rollingReleaseTag) and compares its commit.
       - name: Publish rolling dev pre-release
         if: env.IS_TAG != 'true' && github.event_name == 'push'
         uses: softprops/action-gh-release@v3

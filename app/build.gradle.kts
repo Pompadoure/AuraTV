@@ -57,6 +57,10 @@ android {
         // than any published release and the in-app updater never offers an "update" while developing.
         versionName = System.getenv("VERSION_NAME") ?: "99.99.99"
 
+        // The commit this APK was built from (CI sets GITHUB_SHA). The in-app updater compares it with
+        // the rolling "dev" release's commit; blank for local builds, which then never offer an update.
+        buildConfigField("String", "GIT_SHA", "\"${System.getenv("GITHUB_SHA") ?: ""}\"")
+
         // Opt-in local diagnostic APKs keep the rolling playback trace enabled even when they are
         // release-signed (so they can update an installed production build without changing its data).
         buildConfigField(
