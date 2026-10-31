@@ -647,7 +647,9 @@ fun OwnTVShell(
         subtitleController.clear() // leaving the player drops the OpenSubtitles item context
         if (selectedSection != MainSection.LIVE_TV) liveVm.clearLiveOnExo()
         restoreFocus = true
-        focusRail()
+        // Live TV is kept composed behind the player: focus goes straight to the guide (restoreFocus),
+        // so the rail must not take it and expand for a moment.
+        if (selectedSection != MainSection.LIVE_TV) focusRail()
         tv.own.owntv.features.epg.TransitionLog.mark("exit player done")
         Unit
     }

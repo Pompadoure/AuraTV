@@ -2213,6 +2213,7 @@ fun SubtitleStylePage(onBack: () -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier,
         // The point of every row is how the subtitle looks, so the preview stays at the top of the panel.
         panelTop = { Box(Modifier.padding(bottom = 20.mpx)) { SubtitlePreview(enabled = enabled, scale = scaleExo, font = font, color = color, position = position, bgOpacity = bgOpacity) } },
+        panelTopWhileEditing = true,
     ) {
         val custom = stringResource(R.string.settings_subtitle_customize)
         val customValue = SettingValue.Switch(enabled)

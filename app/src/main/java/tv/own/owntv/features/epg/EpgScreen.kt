@@ -279,6 +279,9 @@ fun EpgScreen(
     fun rowFocus(i: Int): FocusRequester = rowRequesters.getOrPut(i) { FocusRequester() }
     var focusedRow by remember { mutableIntStateOf(0) }
     var gridHasFocus by remember { mutableStateOf(false) }
+    // True while a Back-from-fullscreen restore is moving focus into the grid, so the key hints already show
+    // the cell-mode set instead of flipping from the row-mode set once focus lands.
+    var restoringFocus by remember { mutableStateOf(false) }
     var cursorTime by remember { mutableStateOf(0L) }
     // Row stage (false): ▲ ▼ move between channels, ◀ leaves for the menu. Cell stage (true): ◀ ▶ go
     // through the programmes. Without it, reaching the channel list meant ◀ past every programme.
@@ -348,8 +351,13 @@ fun EpgScreen(
         // the bare channel: the cursor goes to the present moment and the row enters cell mode.
         cursorTime = System.currentTimeMillis()
         inCellMode = true
-        delay(80)
-        focusGrid(idx)
+        restoringFocus = true
+        try {
+            delay(80)
+            focusGrid(idx)
+        } finally {
+            restoringFocus = false
+        }
         TransitionLog.mark("guide focus restored")
         onRestored()
     }
@@ -507,7 +515,7 @@ fun EpgScreen(
                 )
             }
             // The key hints at the bottom right of the top area, level with the video's bottom edge.
-            Box(Modifier.align(Alignment.BottomEnd)) { GuideKeyHints(cellMode = inCellMode && gridHasFocus) }
+            Box(Modifier.align(Alignment.BottomEnd)) { GuideKeyHints(cellMode = inCellMode && (gridHasFocus || restoringFocus)) }
         }
 
         }

@@ -231,6 +231,8 @@ fun StageSettingsPage(
     /** A short title with no "Settings ›" before it (the search results page). */
     crumb: Boolean = true,
     panelTop: (@Composable ColumnScope.() -> Unit)? = null,
+    /** Keep [panelTop] (a live preview) above the editor while a row is being edited. */
+    panelTopWhileEditing: Boolean = false,
     /** A full page's path between "Settings ›" and [group] ("Layout" for Settings › Layout › Panel widths). */
     parents: List<String> = emptyList(),
     /** A full page's own tools in the band, left of the search (which then narrows to 360). */
@@ -327,6 +329,7 @@ fun StageSettingsPage(
                         .stageGlass(30.mpx)
                         .padding(26.mpx),
                 ) {
+                    if (editor != null && panelTopWhileEditing && panelTop != null) panelTop()
                     if (editor != null) SettingPanelEditor(editor, help, onClosed = { panel.opener?.let { r -> runCatching { r.requestFocus() } } })
                     else {
                         // A row that brings its own picture (Popup size's sample) shows it in place of the page's.
@@ -914,6 +917,7 @@ fun StageFullPage(
     rowsFocus: FocusRequester = remember { FocusRequester() },
     tools: (@Composable RowScope.() -> Unit)? = null,
     panelTop: (@Composable ColumnScope.() -> Unit)? = null,
+    panelTopWhileEditing: Boolean = false,
     toolbar: (@Composable RowScope.() -> Unit)? = null,
     list: (@Composable (Modifier) -> Unit)? = null,
     /** Off when the page handles Back itself (Customize cancels a span first). */
@@ -935,6 +939,7 @@ fun StageFullPage(
         parents = parents,
         tools = tools,
         panelTop = panelTop,
+        panelTopWhileEditing = panelTopWhileEditing,
         onSearchActivate = { search?.invoke() },
         toolbar = toolbar,
         list = list,
