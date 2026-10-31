@@ -42,6 +42,8 @@ fun FontSettingsScreen(
         count = pluralStringResource(R.plurals.settings_setting_count, 4, 4),
         onBack = onBack,
         modifier = modifier,
+        // The Appearance preview, here too: font and size changes show on a small Home as they are made.
+        panelTop = { SettingsLivePreview() },
     ) {
         val families = AppFontFamily.entries.map { it.name to familyLabel(it) }
         val fontTitle = stringResource(R.string.settings_main_interface_font)

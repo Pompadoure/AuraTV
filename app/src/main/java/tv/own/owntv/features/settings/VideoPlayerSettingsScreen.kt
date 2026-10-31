@@ -586,6 +586,11 @@ internal fun VideoPlayerGroupRows(
     val externalSeries by vm.externalPlayerSeries.collectAsStateWithLifecycle()
     val zoom by vm.defaultZoom.collectAsStateWithLifecycle()
     val subStyleOn by vm.subtitleStyleEnabled.collectAsStateWithLifecycle()
+    val subScale by vm.subtitleScaleExo.collectAsStateWithLifecycle()
+    val subFont by vm.subtitleFont.collectAsStateWithLifecycle()
+    val subColor by vm.subtitleColor.collectAsStateWithLifecycle()
+    val subPosition by vm.subtitlePosition.collectAsStateWithLifecycle()
+    val subBg by vm.subtitleBgOpacity.collectAsStateWithLifecycle()
     val openSubtitleStyle = LocalOpenSubtitleStyle.current
     val audioDelay by vm.audioDelayMs.collectAsStateWithLifecycle()
     val audioOutput by tv.own.owntv.core.player.AudioOutputWatch.current(LocalContext.current).collectAsStateWithLifecycle()
@@ -1343,6 +1348,8 @@ internal fun VideoPlayerGroupRows(
             modifier = Modifier.focusRequester(dialogRowFocus.getValue(Dialog.SUB_STYLE))
                 .then(LocalSubtitleStyleRowFocus.current?.let { Modifier.focusRequester(it) } ?: Modifier),
             onClick = { savedScroll = scrollState.value; dialog = Dialog.SUB_STYLE },
+            // How the subtitles look with today's settings, next to the row, before the page is opened.
+            helpExtra = { Box(Modifier.padding(top = 18.mpx)) { SubtitlePreview(enabled = subStyleOn, scale = subScale, font = subFont, color = subColor, position = subPosition, bgOpacity = subBg) } },
         )
                     }
                     SECTION_RESUME -> {
@@ -2084,6 +2091,8 @@ internal fun KeyedSettingRow(
     chosen: Int = -1,
     recommended: Int = -1,
     onStep: ((Int) -> Unit)? = null,
+    /** A picture drawn under the help text: how the setting looks (subtitles). */
+    helpExtra: (@Composable () -> Unit)? = null,
 ) {
     val pin = if (quickKey != null) LocalQuickPin.current else null
     val key = helpKey ?: quickKey
@@ -2096,7 +2105,8 @@ internal fun KeyedSettingRow(
         onClick = onClick,
         onLongClick = pin?.let { p -> { p.onHold(quickKey!!) } },
         onStep = onStep,
-        help = settingHelp(key, words.title, desc, value, choices, chosen, recommended, pinnable = pin != null),
+        help = settingHelp(key, words.title, desc, value, choices, chosen, recommended, pinnable = pin != null)
+            .let { h -> if (helpExtra == null) h else h.copy(extra = helpExtra) },
         pinned = pin != null && quickKey in pin.pinned,
         modifier = modifier.then(if (pin != null && pin.focusKey == quickKey) Modifier.focusRequester(pin.focusRequester) else Modifier),
     )
