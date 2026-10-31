@@ -5,6 +5,8 @@ Repository: **Pompadoure/AuraTV**. Rules below are carried over from his JoTube 
 
 ## Hard rules
 - Push only to Pompadoure/AuraTV and Pompadoure/AuraTV_Core (our core fork), never to the upstream (ahXN00/OwnTV, OwnTV_Core, OwnTV_libmpv).
+- Never write to anyone else's repositories or accounts: no pushes, pull requests, issues or comments outside
+  Pompadoure/*. Upstream repos (ahXN00/*) are read-only references.
 - **Nothing is installed on any device until Johan says so.** Do not start videos, launch apps or send input
   to his TV/Streamer without his permission. Reading logs/status is fine.
 - The signing key and keystore never go into the repo. CI reads GitHub secrets `KEYSTORE_BASE64`,
