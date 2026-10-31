@@ -344,6 +344,10 @@ fun EpgScreen(
             state.channels.indexOfFirst { it.id == id }.takeIf { it >= 0 }
         } ?: 0
         focusedRow = idx
+        // Back from fullscreen lands on the programme that is on now, in the row of the channel playing, not on
+        // the bare channel: the cursor goes to the present moment and the row enters cell mode.
+        cursorTime = System.currentTimeMillis()
+        inCellMode = true
         delay(80)
         focusGrid(idx)
         TransitionLog.mark("guide focus restored")

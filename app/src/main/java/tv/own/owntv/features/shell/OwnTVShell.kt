@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -1117,7 +1119,17 @@ fun OwnTVShell(
             },
     ) {
       // Browse UI — hidden while the player is fullscreen (stays visible behind the docked mini-player).
-      if (playerMode != PlayerMode.FULLSCREEN) {
+      // Aura: Live TV (list and guide) stays composed, but invisible and unfocusable, behind the fullscreen
+      // player. Leaving the player used to rebuild the whole guide from scratch, 0.7-0.8 s measured on the
+      // device; now it is already there and only has to be shown. Other sections are still dropped.
+      val keepLiveBehind = playerMode == PlayerMode.FULLSCREEN && selectedSection == MainSection.LIVE_TV
+      if (playerMode != PlayerMode.FULLSCREEN || keepLiveBehind) {
+       Box(
+        if (keepLiveBehind) Modifier.fillMaxSize()
+            .graphicsLayer { alpha = 0f }
+            .focusProperties { canFocus = false }
+        else Modifier.fillMaxSize(),
+       ) {
         Column(
             modifier = Modifier.fillMaxSize()
                 // One group with a restorer: leaving for the mini player and coming back lands on the
@@ -1566,6 +1578,7 @@ fun OwnTVShell(
             pulseEnabled = ambientGlowPulse && shellAnimationLevel != tv.own.owntv.core.theme.AnimationLevel.OFF,
             modifier = Modifier.fillMaxSize(),
         )
+       }
       }
 
       // Unobtrusive background-sync pill (bottom middle): visible while any catalog sync runs —
