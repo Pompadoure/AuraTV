@@ -640,7 +640,7 @@ fun OwnTVShell(
             frame.active = true
             scope.launch {
                 withFrameNanos { }
-                frame.animateTo(scope, 1f, 260) { frame.active = false }
+                frame.animateTo(scope, 1f, 440) { frame.active = false }
             }
         }
         if (playerMode != PlayerMode.MINI) playerMode = PlayerMode.FULLSCREEN
@@ -701,7 +701,7 @@ fun OwnTVShell(
             }
             scope.launch {
                 withFrameNanos { }
-                val shrink = if (animate) frame.animateTo(scope, 0f, 220) else null
+                val shrink = if (animate) frame.animateTo(scope, 0f, 400) else null
                 kotlinx.coroutines.withTimeoutOrNull(700) {
                     androidx.compose.runtime.snapshotFlow { restoreFocus }.first { !it }
                 }
@@ -1194,7 +1194,7 @@ fun OwnTVShell(
        val browseAlpha by androidx.compose.animation.core.animateFloatAsState(
            targetValue = if (keepLiveBehind && !frame.exiting) 0f else 1f,
            animationSpec = androidx.compose.animation.core.tween(
-               if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0 else 220,
+               if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0 else 400,
            ),
            label = "browseAlpha",
        )
@@ -1983,7 +1983,9 @@ fun OwnTVShell(
                     onOtherChannels = matchSession?.takeIf { it.options.size > 1 }?.let { { showOtherChannels = true } },
                     otherChannelsCount = (matchSession?.options?.size ?: 1) - 1,
                     onToastOk = goalToast?.let { a -> { switchToMatch(a.match) } },
-                    modifier = Modifier.fillMaxSize(),
+                    // Hidden while the picture travels to or from the preview: its programme panel and controls
+                    // are laid out for the whole window and would show squeezed into the small frame.
+                    modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (frame.active) 0f else 1f },
                 )
                 goalToast?.let { a ->
                     tv.own.owntv.features.sports.GoalToast(a, Modifier.align(androidx.compose.ui.Alignment.TopEnd).padding(top = 45.mpx, end = 60.mpx))
