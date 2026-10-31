@@ -178,6 +178,10 @@ fun OwnTVShell(
     }
     // One-shot: set when leaving the player so the returning browse screen re-focuses the item you played.
     var restoreFocus by remember { mutableStateOf(false) }
+    // Back from full screen to the Live TV guide: until the guide has taken focus the rail must not, or the
+    // cursor visibly walks rail → channel → programme. Cleared by the guide's onRestored (and by a timeout).
+    var returningToGuide by remember { mutableStateOf(false) }
+    LaunchedEffect(returningToGuide) { if (returningToGuide) { kotlinx.coroutines.delay(1500); returningToGuide = false } }
     var searchReturn by remember { mutableStateOf<MainSection?>(null) }
     var restoreTrendingSearchFocus by remember { mutableStateOf(false) }
     var trendingSearchActive by remember { mutableStateOf(false) }
@@ -646,6 +650,7 @@ fun OwnTVShell(
         player.stop()
         subtitleController.clear() // leaving the player drops the OpenSubtitles item context
         if (selectedSection != MainSection.LIVE_TV) liveVm.clearLiveOnExo()
+        returningToGuide = selectedSection == MainSection.LIVE_TV
         restoreFocus = true
         // Live TV is kept composed behind the player: focus goes straight to the guide (restoreFocus),
         // so the rail must not take it and expand for a moment.
@@ -1301,7 +1306,7 @@ fun OwnTVShell(
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                             onEntryHook = { moreEntry = it },
                             restoreFocus = restoreFocus,
-                            onRestored = { restoreFocus = false },
+                            onRestored = { restoreFocus = false; returningToGuide = false },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
@@ -1434,7 +1439,7 @@ fun OwnTVShell(
                             onEntryHook = { guideEntry = it },
                             onListView = { liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.LIST) },
                             restoreFocus = restoreFocus,
-                            onRestored = { restoreFocus = false },
+                            onRestored = { restoreFocus = false; returningToGuide = false },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
@@ -1447,7 +1452,7 @@ fun OwnTVShell(
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                             previewEnabled = playerMode == PlayerMode.NONE,
                             restoreFocus = restoreFocus,
-                            onRestored = { restoreFocus = false },
+                            onRestored = { restoreFocus = false; returningToGuide = false },
                             modifier = Modifier.fillMaxSize(),
                         )
 
@@ -1455,7 +1460,7 @@ fun OwnTVShell(
                             onFullscreen = { openFullscreen() },
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                             restoreFocus = restoreFocus,
-                            onRestored = { restoreFocus = false },
+                            onRestored = { restoreFocus = false; returningToGuide = false },
                             onEntryHook = { vodEntry = it },
                             modifier = Modifier.fillMaxSize(),
                         )
@@ -1464,7 +1469,7 @@ fun OwnTVShell(
                             onFullscreen = { openFullscreen() },
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                             restoreFocus = restoreFocus,
-                            onRestored = { restoreFocus = false },
+                            onRestored = { restoreFocus = false; returningToGuide = false },
                             onEntryHook = { vodEntry = it },
                             modifier = Modifier.fillMaxSize(),
                         )
@@ -1474,7 +1479,7 @@ fun OwnTVShell(
                             onChildFocused = { focusedLayer = ShellLayer.CONTENT },
                             onOpenGuide = { onSelectSection(MainSection.EPG) },
                             restoreFocus = restoreFocus,
-                            onRestored = { restoreFocus = false },
+                            onRestored = { restoreFocus = false; returningToGuide = false },
                             onEntryHook = { downloadsEntry = it },
                             contentStart = if (navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx,
                             modifier = Modifier.fillMaxSize(),
@@ -1498,7 +1503,7 @@ fun OwnTVShell(
                             onEntryHook = { guideEntry = it },
                             onAddEpg = { openEpgAdd = true; onSelectSection(MainSection.SETTINGS) },
                             restoreFocus = restoreFocus,
-                            onRestored = { restoreFocus = false },
+                            onRestored = { restoreFocus = false; returningToGuide = false },
                             modifier = Modifier
                                 .fillMaxSize()
                                 .onFocusChanged { if (it.hasFocus) focusedLayer = ShellLayer.CONTENT }
@@ -1569,6 +1574,7 @@ fun OwnTVShell(
                 onFocused = { focusedLayer = ShellLayer.SIDEBAR },
                 nowPlaying = nowPlayingRail,
                 onNowPlaying = enterNowPlaying,
+                modifier = Modifier.focusProperties { canFocus = !returningToGuide },
             )
           }
         }

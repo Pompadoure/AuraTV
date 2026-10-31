@@ -353,7 +353,7 @@ fun EpgScreen(
         inCellMode = true
         restoringFocus = true
         try {
-            delay(80)
+            withFrameNanos { }
             focusGrid(idx)
         } finally {
             restoringFocus = false
@@ -619,7 +619,7 @@ fun EpgScreen(
                             contentPadding = PaddingValues(bottom = 24.mpx),
                         ) {
                             itemsIndexed(state.channels, key = { _, ch -> ch.id }) { index, channel ->
-                                val focus = guideRowFocusArgs(index, focusedRow, cursorTime, inCellMode, gridHasFocus)
+                                val focus = guideRowFocusArgs(index, focusedRow, cursorTime, inCellMode, gridHasFocus || restoringFocus)
                                 GuideRow(
                                     vm = vm,
                                     channel = channel,

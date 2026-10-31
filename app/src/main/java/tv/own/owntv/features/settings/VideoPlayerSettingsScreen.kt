@@ -2261,7 +2261,8 @@ fun SubtitleStylePage(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     title = stringResource(R.string.settings_subtitle_size),
                     options = sizes,
                     selected = nearestSubSize(if (exo) scaleExo else scaleMpv).first.toString(),
-                    onSelect = { v -> if (exo) vm.setSubtitleScaleExo(v.toFloat()) else vm.setSubtitleScaleMpv(v.toFloat()); close() },
+                    // Stays open on a pick: the preview above shows the change, Back closes.
+                    onSelect = { v -> if (exo) vm.setSubtitleScaleExo(v.toFloat()) else vm.setSubtitleScaleMpv(v.toFloat()) },
                     onDismiss = close,
                 )
             }
@@ -2269,14 +2270,14 @@ fun SubtitleStylePage(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 title = stringResource(R.string.settings_subtitle_font),
                 options = listOf("" to stringResource(R.string.settings_subtitle_default)) + AppFontFamily.entries.map { it.name to subtitleFontFamilyLabel(it) },
                 selected = font?.name.orEmpty(),
-                onSelect = { v -> vm.setSubtitleFont(AppFontFamily.entries.firstOrNull { it.name == v }); close() },
+                onSelect = { v -> vm.setSubtitleFont(AppFontFamily.entries.firstOrNull { it.name == v }) },
                 onDismiss = close,
             )
             SubEdit.POSITION -> PickerDialog(
                 title = stringResource(R.string.settings_subtitle_position),
                 options = (listOf(SubtitleStyle.Position.DEFAULT) + SubtitleStyle.Position.ANCHORS).map { it.name to subtitlePositionName(it) },
                 selected = position.name,
-                onSelect = { v -> vm.setSubtitlePosition(SubtitleStyle.Position.valueOf(v)); close() },
+                onSelect = { v -> vm.setSubtitlePosition(SubtitleStyle.Position.valueOf(v)) },
                 onDismiss = close,
             )
             SubEdit.BACKGROUND -> panelEditor(close) {

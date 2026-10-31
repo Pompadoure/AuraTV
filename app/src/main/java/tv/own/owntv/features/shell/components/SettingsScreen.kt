@@ -1168,6 +1168,7 @@ fun SettingsScreen(
             modifier = modifier,
             searchAutoEdit = searchAutoEdit,
             panelTop = if (group == SettingsGroup.APPEARANCE && !searching) ({ tv.own.owntv.features.settings.SettingsLivePreview() }) else null,
+            panelTopWhileEditing = true,
         ) {
             when {
                 // A search page with nothing typed yet (or the text cleared) says what to do, not a blank page.
@@ -1622,7 +1623,8 @@ private fun ThemeDialogHost(settingsVm: SettingsViewModel, themeMode: ThemeMode,
         title = stringResource(R.string.settings_theme_dialog),
         options = ThemeMode.entries.map { it.name to themeLabel(it) },
         selected = themeMode.name,
-        onSelect = { settingsVm.setThemeMode(ThemeMode.valueOf(it)); onClose() },
+        // Stays open on a pick so the live preview shows the change; Back closes.
+        onSelect = { settingsVm.setThemeMode(ThemeMode.valueOf(it)) },
         onDismiss = { onClose() },
     )
 }
@@ -1671,7 +1673,7 @@ private fun AnimationsDialogHost(settingsVm: SettingsViewModel, animationLevel: 
         title = stringResource(R.string.settings_animations_dialog),
         options = tv.own.owntv.core.theme.AnimationLevel.entries.map { it.name to stringResource(it.labelRes) },
         selected = animationLevel.name,
-        onSelect = { settingsVm.setAnimationLevel(tv.own.owntv.core.theme.AnimationLevel.valueOf(it)); onClose() },
+        onSelect = { settingsVm.setAnimationLevel(tv.own.owntv.core.theme.AnimationLevel.valueOf(it)) },
         onDismiss = { onClose() },
     )
 }

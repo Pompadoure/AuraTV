@@ -99,7 +99,7 @@ fun FontSettingsScreen(
                 options = families,
                 selected = current.mainFamily.name,
                 // One family for the interface and its popups: popups follow the main font.
-                onSelect = { name -> AppFontFamily.valueOf(name).let { onSet(current.copy(mainFamily = it, popupFamily = it)) }; editing = null },
+                onSelect = { name -> AppFontFamily.valueOf(name).let { onSet(current.copy(mainFamily = it, popupFamily = it)) } },
                 onDismiss = { editing = null },
             )
             FontEdit.SIZE -> panelEditor({ editing = null }) {
