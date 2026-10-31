@@ -178,6 +178,9 @@ fun SettingsScreen(
     var showEpgOffset by remember { mutableStateOf(false) }
     var showGuideDays by remember { mutableStateOf(false) }
     var showAnimations by remember { mutableStateOf(false) }
+    var showTravel by remember { mutableStateOf(false) }
+    val travelRowFocus = remember { FocusRequester() }
+    val travelCtx = androidx.compose.ui.platform.LocalContext.current
     var showVodLayout by remember { mutableStateOf(false) }
     var showNavigation by remember { mutableStateOf(false) }
     var showLiveLayout by remember { mutableStateOf(false) }
@@ -258,13 +261,13 @@ fun SettingsScreen(
         }
         onStartConsumed()
     }
-    val anyDialogOpen = showZoom || showPopupSize || showTheme || showAccent || showUpdate || showCatchupTime || showCatchupSources || showCatchupSourceValue || showEpgOffset || showGuideDays || showAnimations || showStartup || showStartupChannelPicker || showAfrWarning || showLivePreviewPanelWarning || showBgImageChooser || showBgPicker || showAmbientGlow || showFocusHighlight || showBgRemote || showVodLayout || showNavigation || showLiveLayout || stageSettings.open != null
+    val anyDialogOpen = showZoom || showPopupSize || showTheme || showAccent || showUpdate || showCatchupTime || showCatchupSources || showCatchupSourceValue || showEpgOffset || showGuideDays || showAnimations || showTravel || showStartup || showStartupChannelPicker || showAfrWarning || showLivePreviewPanelWarning || showBgImageChooser || showBgPicker || showAmbientGlow || showFocusHighlight || showBgRemote || showVodLayout || showNavigation || showLiveLayout || stageSettings.open != null
     // When a dialog closes, restore focus to the row that opened it. NOTE: this restore crosses
     // INTO the root focus group from outside (the dialog), but onEnter does NOT fire for programmatic
     // requestsFocus (only for directional entry) — so dialogReturn must be cleared HERE, not in onEnter.
     // If it's left set, the next directional entry (e.g. sidebar→here) would re-route to a stale row.
     var dialogReturn by remember { mutableStateOf<FocusRequester?>(null) }
-    LaunchedEffect(showZoom, showPopupSize, showTheme, showAccent, showUpdate, showCatchupTime, showCatchupSources, showCatchupSourceValue, showEpgOffset, showGuideDays, showAnimations, showStartup, showStartupChannelPicker, showAfrWarning, showLivePreviewPanelWarning, showBgImageChooser, showBgPicker, showAmbientGlow, showFocusHighlight, showBgRemote, showVodLayout, showNavigation, showLiveLayout, stageSettings.open) {
+    LaunchedEffect(showZoom, showPopupSize, showTheme, showAccent, showUpdate, showCatchupTime, showCatchupSources, showCatchupSourceValue, showEpgOffset, showGuideDays, showAnimations, showTravel, showStartup, showStartupChannelPicker, showAfrWarning, showLivePreviewPanelWarning, showBgImageChooser, showBgPicker, showAmbientGlow, showFocusHighlight, showBgRemote, showVodLayout, showNavigation, showLiveLayout, stageSettings.open) {
         // Only after a popup really closed: on first composition there is no opener, and holding a stale
         // offset for the settle frames bounced the page.
         if (!anyDialogOpen && dialogReturn != null) {
@@ -623,6 +626,13 @@ fun SettingsScreen(
             chip = stringResource(animationLevel.labelRes), chipTone = TileTone.SECONDARY,
             focus = animationsRowFocus,
             onClick = { saveScroll(); dialogReturn = animationsRowFocus; showAnimations = true },
+        ),
+        RootRow(
+            "transition_time", TileTone.SECONDARY, OwnTVIcon.MOTION,
+            title = stringResource(R.string.aura_transition_time), desc = stringResource(R.string.aura_transition_time_description),
+            chip = stringResource(R.string.aura_ms_value, tv.own.owntv.features.shell.TransitionPrefs.ms(travelCtx)), chipTone = TileTone.SECONDARY,
+            focus = travelRowFocus,
+            onClick = { saveScroll(); dialogReturn = travelRowFocus; showTravel = true },
         ),
         navigationRootRow(settingsVm, navigationRowFocus) { saveScroll(); dialogReturn = navigationRowFocus; showNavigation = true }
             .copy(heading = stringResource(R.string.settings_section_navigation_layout)),
@@ -1285,6 +1295,7 @@ fun SettingsScreen(
     if (showTheme) ThemeDialogHost(settingsVm, themeMode, onClose = { showTheme = false })
     if (showStartup) StartupDialogHost(settingsVm, startupMode, onClose = { showStartup = false }, onPickChannel = { showStartupChannelPicker = true })
     if (showStartupChannelPicker) StartupChannelPickerHost(settingsVm, startupChannel, onClose = { showStartupChannelPicker = false })
+    if (showTravel) TravelDialogHost(onClose = { showTravel = false })
     if (showAnimations) AnimationsDialogHost(settingsVm, animationLevel, onClose = { showAnimations = false })
     if (showNavigation) {
         NavigationPopupHost(settingsVm, onDismiss = { showNavigation = false })
@@ -2899,5 +2910,18 @@ private fun serviceRowExtras(vm: SettingsViewModel): Map<String, RowExtra> {
         ),
         "tab_NETWORK" to RowExtra(SettingValue.Opens(if (proxy.usable) "${proxy.host}:${proxy.port}" else off)),
         "tab_DNS" to RowExtra(SettingValue.Opens(if (dns.enabled && dnsHost.isNotBlank()) dnsHost else if (dns.enabled) on else off)),
+    )
+}
+
+@Composable
+private fun TravelDialogHost(onClose: () -> Unit) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val current = tv.own.owntv.features.shell.TransitionPrefs.ms(ctx)
+    tv.own.owntv.features.settings.PickerDialog(
+        title = stringResource(R.string.aura_transition_time),
+        options = tv.own.owntv.features.shell.TransitionPrefs.PRESETS.map { it.toString() to stringResource(R.string.aura_ms_value, it) },
+        selected = current.toString(),
+        onSelect = { tv.own.owntv.features.shell.TransitionPrefs.set(ctx, it.toInt()) },
+        onDismiss = { onClose() },
     )
 }

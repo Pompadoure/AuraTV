@@ -640,7 +640,7 @@ fun OwnTVShell(
             frame.active = true
             scope.launch {
                 withFrameNanos { }
-                frame.animateTo(scope, 1f, 440) { frame.active = false }
+                frame.animateTo(scope, 1f, TransitionPrefs.ms(auraContext)) { frame.active = false }
             }
         }
         if (playerMode != PlayerMode.MINI) playerMode = PlayerMode.FULLSCREEN
@@ -701,7 +701,7 @@ fun OwnTVShell(
             }
             scope.launch {
                 withFrameNanos { }
-                val shrink = if (animate) frame.animateTo(scope, 0f, 400) else null
+                val shrink = if (animate) frame.animateTo(scope, 0f, TransitionPrefs.ms(auraContext)) else null
                 kotlinx.coroutines.withTimeoutOrNull(700) {
                     androidx.compose.runtime.snapshotFlow { restoreFocus }.first { !it }
                 }
@@ -1194,7 +1194,7 @@ fun OwnTVShell(
        val browseAlpha by androidx.compose.animation.core.animateFloatAsState(
            targetValue = if (keepLiveBehind && !frame.exiting) 0f else 1f,
            animationSpec = androidx.compose.animation.core.tween(
-               if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0 else 400,
+               if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0 else TransitionPrefs.ms(auraContext),
            ),
            label = "browseAlpha",
        )

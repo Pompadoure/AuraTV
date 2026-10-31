@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aura_transition_time">Övergångstid förhandsvisning</string>
+    <string name="aura_transition_time_description">Hur lång tid bilden tar på sig att växa till helskärm och krympa tillbaka till förhandsvisningen</string>
+    <string name="aura_ms_value">%1$d ms</string>
+</resources>

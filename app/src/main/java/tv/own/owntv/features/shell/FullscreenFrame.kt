@@ -8,6 +8,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -83,3 +84,33 @@ internal fun Modifier.fullscreenFrame(frame: FullscreenFrame): Modifier = this
         }
     }
     .background(Color.Black)
+
+/**
+ * User-tunable length of the full-screen <-> preview travel, in milliseconds. Stored in the app's own
+ * SharedPreferences (not core settings) so it needs no core change; the shell and the settings screen
+ * share one observable value.
+ */
+object TransitionPrefs {
+    const val DEFAULT_MS = 440
+    val PRESETS = listOf(200, 300, 440, 600, 800, 1000, 1400)
+    private const val FILE = "aura_prefs"
+    private const val KEY = "transition_ms"
+    private var loaded = false
+    private val state = mutableIntStateOf(DEFAULT_MS)
+
+    fun ms(context: android.content.Context): Int {
+        if (!loaded) {
+            state.intValue = context.applicationContext.getSharedPreferences(FILE, android.content.Context.MODE_PRIVATE)
+                .getInt(KEY, DEFAULT_MS)
+            loaded = true
+        }
+        return state.intValue
+    }
+
+    fun set(context: android.content.Context, ms: Int) {
+        ms(context)
+        state.intValue = ms
+        context.applicationContext.getSharedPreferences(FILE, android.content.Context.MODE_PRIVATE)
+            .edit().putInt(KEY, ms).apply()
+    }
+}
