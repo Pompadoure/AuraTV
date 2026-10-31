@@ -593,7 +593,7 @@ fun EpgScreen(
                 else -> {
                     val gx = fx(48) + labelW
                     // The number column fits the longest channel number (38 = three digits).
-                    val numberWidth = maxOf(38f, (state.channels.maxOfOrNull { it.number?.toString()?.length ?: 0 } ?: 0) * 11f).mpx
+                    val numberWidth = maxOf(38f, (state.channels.maxOfOrNull { it.number?.toString()?.length ?: 0 } ?: 0) * 11f).mpx * rememberGuideScale().text
                     GuideRuler(
                         windowStart = state.windowStart, windowEnd = state.windowEnd, now = liveNow, scrollPx = readScrollPx,
                         modifier = Modifier.padding(start = gx).width(timelineW).height(40.mpx),
@@ -860,7 +860,7 @@ private fun GuideRow(
     var okDown by remember { mutableStateOf(false) }
     LaunchedEffect(focused, cursorTime, programmes) { if (focused) onShow(programmeAt(programmes, cursorTime)) }
     val rowSelected = focused && !cellMode
-    Row(Modifier.fillMaxWidth().height(GuideGridDefaults.RowHeight), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().height(GuideGridDefaults.RowHeight * rememberGuideScale().row), verticalAlignment = Alignment.CenterVertically) {
         GuideChannelLabel(channel, name, dot, selected = selectedRow, numberWidth = numberWidth, modifier = Modifier.width(labelWidth))
         Box(
             Modifier

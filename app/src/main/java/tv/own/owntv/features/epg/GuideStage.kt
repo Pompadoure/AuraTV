@@ -263,6 +263,7 @@ internal fun GuideRuler(
 @Composable
 internal fun GuideChannelLabel(channel: ChannelEntity, name: String, dot: Color?, selected: Boolean, numberWidth: Dp, modifier: Modifier = Modifier) {
     val a = stageAccent
+    val guideScale = rememberGuideScale()
     Row(
         modifier.padding(start = 8.mpx),
         horizontalArrangement = Arrangement.spacedBy(10.mpx),
@@ -271,12 +272,12 @@ internal fun GuideChannelLabel(channel: ChannelEntity, name: String, dot: Color?
         Box(Modifier.size(7.mpx).background(dot ?: Color.Transparent, RoundedCornerShape(50)))
         Text(
             channel.number?.toString().orEmpty(),
-            style = stageText(17, 700).copy(fontFeatureSettings = Tabular), color = if (selected) a.accent else StageColors.Dim,
+            style = stageText(17 * guideScale.text, 700).copy(fontFeatureSettings = Tabular), color = if (selected) a.accent else StageColors.Dim,
             // Always whole: the column fits the longest number in the list; only the name is cut.
             maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(numberWidth),
         )
-        LivePlate(channel.displayLogoUrl, 58.mpx, 40.mpx, radius = 10.mpx)
-        Text(name, style = stageText(17, 700), color = if (selected) a.accent else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        LivePlate(channel.displayLogoUrl, 58.mpx * guideScale.row, 40.mpx * guideScale.row, radius = 10.mpx)
+        Text(name, style = stageText(17 * guideScale.text, 700), color = if (selected) a.accent else StageColors.Text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
         if (channel.catchup) OwnTVIcon(OwnTVIcon.REWIND, if (selected) a.accent else StageColors.Dim, Modifier.padding(end = 8.mpx).size(20.mpx))
     }
 }

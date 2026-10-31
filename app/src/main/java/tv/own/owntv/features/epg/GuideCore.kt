@@ -83,8 +83,9 @@ internal fun ProgrammeStripCanvas(
     val a = tv.own.owntv.ui.theme.stageAccent
     val px = with(density) { 1.mpx.toPx() }
     val pxPerMin = with(density) { GuideGridDefaults.PxPerMin.toPx() }
-    val titleStyle = tv.own.owntv.ui.theme.stageText(18, 700).copy(textDirection = TextDirection.Content)
-    val timeStyle = tv.own.owntv.ui.theme.stageText(14, 400).copy(fontFeatureSettings = "tnum", textDirection = TextDirection.Content)
+    val guideScale = rememberGuideScale()
+    val titleStyle = tv.own.owntv.ui.theme.stageText(18 * guideScale.text, 700).copy(textDirection = TextDirection.Content)
+    val timeStyle = tv.own.owntv.ui.theme.stageText(14 * guideScale.text, 400).copy(fontFeatureSettings = "tnum", textDirection = TextDirection.Content)
     val formatTime = rememberSystemTimeFormatter()
     val rangeTemplate = stringResource(R.string.content_live_time_range_plain)
     val labels = remember(programmes, formatTime, rangeTemplate) {
@@ -163,11 +164,11 @@ internal fun ProgrammeStripCanvas(
             val smallColor = if (focused) Color.Black.copy(alpha = 0.6f) else dimColor.copy(alpha = fade)
             val iconColor = if (focused) a.onAccent else a.accent.copy(alpha = fade)
             val title = measurer.measure(p.title, titleStyle.copy(color = titleColor), overflow = TextOverflow.Ellipsis, maxLines = 1, softWrap = false, constraints = Constraints(maxWidth = textW))
-            drawText(title, topLeft = Offset(tx + 14 * px, 8 * px))
+            drawText(title, topLeft = Offset(tx + 14 * px, 8 * px * guideScale.row))
             // The small line: icons first, 8 apart, then the time.
             var cx = tx + 14 * px
-            val lineTop = 8 * px + title.size.height + 3 * px
-            val icon = 14 * px
+            val lineTop = 8 * px * guideScale.row + title.size.height + 3 * px
+            val icon = 14 * px * guideScale.text
             fun glyph(g: OwnTVIcon, c: Color, filled: Boolean = false) {
                 if (cx + icon > x + w - 14 * px) return
                 drawStageGlyph(g, c, Offset(cx, lineTop + 2 * px), icon, filled)

@@ -35,6 +35,7 @@ import tv.own.owntv.core.settings.GuideWidthLimits
 import tv.own.owntv.core.settings.GuideWidthShares
 import tv.own.owntv.ui.components.OwnTVIcon
 import tv.own.owntv.ui.components.trapAllFocusExit
+import tv.own.owntv.features.epg.GuideLayoutPrefs
 
 /** Layout setting for the Guide's pinned channel column and scrollable programme timeline. */
 @Composable
@@ -45,6 +46,11 @@ fun GuideWidthSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) 
     val current = shares ?: GuideWidthLimits.defaults
     val rowFocus = remember { FocusRequester() }
     var showDialog by remember { mutableStateOf(false) }
+    // Row height and text size of the guide (this app's own store, see GuideLayoutPrefs).
+    GuideLayoutPrefs.init(androidx.compose.ui.platform.LocalContext.current)
+    val rowPct by GuideLayoutPrefs.rowPct.collectAsStateWithLifecycle()
+    val textPct by GuideLayoutPrefs.textPct.collectAsStateWithLifecycle()
+    var sizeEdit by remember { mutableStateOf<GuideSizeEdit?>(null) }
 
     LaunchedEffect(Unit) { runCatching { rowFocus.requestFocus() } }
     LaunchedEffect(showDialog) {
@@ -55,7 +61,7 @@ fun GuideWidthSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) 
     StageFullPage(
         parents = listOf(stringResource(R.string.settings_group_layout)),
         title = stringResource(R.string.settings_guide_width),
-        count = pluralStringResource(R.plurals.settings_setting_count, 2, 2),
+        count = pluralStringResource(R.plurals.settings_setting_count, 4, 4),
         onBack = onBack,
         modifier = modifier,
     ) {
@@ -74,15 +80,56 @@ fun GuideWidthSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) 
             ),
             modifier = Modifier.focusRequester(rowFocus),
         )
+        val percent: @Composable (Int) -> String = { stringResource(R.string.common_percent, it) }
+        val preview: @Composable () -> Unit = { GuideLayoutPreview(current, rowPct, textPct) }
+        val rowTitle = stringResource(R.string.settings_guide_row_height)
+        val rowDesc = stringResource(R.string.settings_guide_row_height_description)
+        val rowValue = SettingValue.Stepper(percent(rowPct))
+        val stepRow = { d: Int -> GuideLayoutPrefs.setRow(rowPct + d * GuideLayoutPrefs.STEP) }
+        StageSettingRow(
+            icon = OwnTVIcon.EPG,
+            title = rowTitle,
+            desc = rowDesc,
+            value = rowValue,
+            onClick = { sizeEdit = GuideSizeEdit.ROW },
+            onStep = stepRow,
+            help = SettingHelp(rowTitle, rowDesc, hints = settingHints(rowValue, pinnable = false),
+                extra = { Box(Modifier.padding(top = 18.mpx), content = { preview() }) }),
+        )
+        val textTitle = stringResource(R.string.settings_guide_text_size)
+        val textDesc = stringResource(R.string.settings_guide_text_size_description)
+        val textValue = SettingValue.Stepper(percent(textPct))
+        val stepText = { d: Int -> GuideLayoutPrefs.setText(textPct + d * GuideLayoutPrefs.STEP) }
+        StageSettingRow(
+            icon = OwnTVIcon.TEXT_SIZE,
+            title = textTitle,
+            desc = textDesc,
+            value = textValue,
+            onClick = { sizeEdit = GuideSizeEdit.TEXT },
+            onStep = stepText,
+            help = SettingHelp(textTitle, textDesc, hints = settingHints(textValue, pinnable = false),
+                extra = { Box(Modifier.padding(top = 18.mpx), content = { preview() }) }),
+        )
         val reset = stringResource(R.string.common_reset)
         StageSettingRow(
             icon = OwnTVIcon.REFRESH,
             title = reset,
             desc = stringResource(R.string.settings_guide_width_summary, GuideWidthLimits.defaults.channels, GuideWidthLimits.defaults.epg),
             value = null,
-            onClick = { vm.setGuideWidths(false, GuideWidthLimits.defaults) },
+            onClick = { vm.setGuideWidths(false, GuideWidthLimits.defaults); GuideLayoutPrefs.reset() },
             help = SettingHelp(reset, rules, hints = settingHints(null, pinnable = false)),
         )
+        when (sizeEdit) {
+            GuideSizeEdit.ROW -> panelEditor({ sizeEdit = null }) {
+                PanelStepper(percent(rowPct), onStep = stepRow, onReset = { GuideLayoutPrefs.setRow(GuideLayoutPrefs.DEFAULT) },
+                    onDone = { sizeEdit = null }, preview = preview)
+            }
+            GuideSizeEdit.TEXT -> panelEditor({ sizeEdit = null }) {
+                PanelStepper(percent(textPct), onStep = stepText, onReset = { GuideLayoutPrefs.setText(GuideLayoutPrefs.DEFAULT) },
+                    onDone = { sizeEdit = null }, preview = preview)
+            }
+            null -> Unit
+        }
         // In the page's panel.
         if (showDialog) panelEditor({ showDialog = false }) {
             GuideWidthDialog(savedEnabled = enabled, savedShares = current, onSave = vm::setGuideWidths, onDismiss = { showDialog = false })
@@ -129,6 +176,42 @@ private fun GuideWidthDiagram(shares: GuideWidthShares) {
         listOf(shares.channels to a.accent.copy(alpha = 0.32f), shares.epg to tv.own.owntv.ui.theme.StageColors.Ink.copy(alpha = 0.08f)).forEach { (w, fill) ->
             Box(Modifier.weight(w.toFloat()).fillMaxSize().background(fill, RoundedCornerShape(10.mpx)), contentAlignment = Alignment.Center) {
                 Text(stringResource(R.string.common_percent, w), style = tv.own.owntv.ui.theme.stageText(15, 700), color = tv.own.owntv.ui.theme.StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
+private enum class GuideSizeEdit { ROW, TEXT }
+
+/**
+ * A few guide rows as they will look: the channel column and two programme cells at the chosen widths,
+ * row height and text size. Drawn in the panel at a third of the real size, so the proportions are the guide's.
+ */
+@Composable
+private fun GuideLayoutPreview(shares: GuideWidthShares, rowPct: Int, textPct: Int) {
+    val a = tv.own.owntv.ui.theme.stageAccent
+    val text = textPct / 100f
+    val row = maxOf(rowPct, textPct) / 100f
+    Column(Modifier.fillMaxWidth().background(StageColors.Ink.copy(alpha = 0.05f), RoundedCornerShape(12.mpx)).padding(8.mpx), verticalArrangement = Arrangement.spacedBy(4.mpx)) {
+        (0 until 3).forEach { i ->
+            Row(Modifier.fillMaxWidth().height((36f * row).mpx), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.mpx)) {
+                Box(Modifier.weight(shares.channels.toFloat()).fillMaxSize(), contentAlignment = Alignment.CenterStart) {
+                    Text(stringResource(R.string.settings_guide_preview_channel, i + 1), style = tv.own.owntv.ui.theme.stageText(12 * text, 700), color = StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                }
+                Row(Modifier.weight(shares.epg.toFloat()).fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(3.mpx)) {
+                    (0 until 2).forEach { c ->
+                        val focused = i == 0 && c == 0
+                        Column(
+                            Modifier.weight(1f).fillMaxSize()
+                                .background(if (focused) a.accent else StageColors.Ink.copy(alpha = 0.08f), RoundedCornerShape(8.mpx))
+                                .padding(horizontal = 6.mpx),
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(stringResource(R.string.settings_guide_preview_programme), style = tv.own.owntv.ui.theme.stageText(12 * text, 700), color = if (focused) a.onAccent else StageColors.Text, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            Text(String.format(java.util.Locale.ROOT, "%d:%02d", 19 + c, 30 * (i % 2)), style = tv.own.owntv.ui.theme.stageText(9 * text, 400), color = if (focused) a.onAccent else StageColors.Dim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        }
+                    }
+                }
             }
         }
     }

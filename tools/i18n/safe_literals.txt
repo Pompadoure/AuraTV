@@ -98,6 +98,9 @@
 1	log	app/src/main/java/tv/own/owntv/features/epg/EpgViewModel.kt	totalMs=${android.os.SystemClock.elapsedRealtime() - loadStartedAt}
 1	log	app/src/main/java/tv/own/owntv/features/epg/EpgViewModel.kt	window-moved
 1	technical	app/src/main/java/tv/own/owntv/features/epg/GuideCore.kt	tnum
+1	preference-key	app/src/main/java/tv/own/owntv/features/epg/GuideLayoutPrefs.kt	aura_guide_layout
+1	preference-key	app/src/main/java/tv/own/owntv/features/epg/GuideLayoutPrefs.kt	row_pct
+1	preference-key	app/src/main/java/tv/own/owntv/features/epg/GuideLayoutPrefs.kt	text_pct
 1	empty	app/src/main/java/tv/own/owntv/features/epg/GuideStage.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/epg/GuideStage.kt	EEEdMMM
 1	technical	app/src/main/java/tv/own/owntv/features/epg/GuideStage.kt	tnum
@@ -309,6 +312,7 @@
 1	technical	app/src/main/java/tv/own/owntv/features/settings/EpgSourcesViewModel.kt	manual_resync
 1	technical	app/src/main/java/tv/own/owntv/features/settings/EpgSourcesViewModel.kt	update
 1	technical	app/src/main/java/tv/own/owntv/features/settings/FontSettingsScreen.kt	fonts
+1	technical	app/src/main/java/tv/own/owntv/features/settings/GuideWidthSettingsScreen.kt	%d:%02d
 1	empty	app/src/main/java/tv/own/owntv/features/settings/HomeSettingsScreen.kt	\0
 1	technical	app/src/main/java/tv/own/owntv/features/settings/HomeSettingsScreen.kt	▲ ▼
 1	technical	app/src/main/java/tv/own/owntv/features/settings/HomeSettingsScreen.kt	▶

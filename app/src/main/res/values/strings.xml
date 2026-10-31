@@ -17,4 +17,12 @@
     <string name="settings_section_start_home">Start &amp; Home</string>
     <string name="settings_section_menus_remote">Menus &amp; remote</string>
     <string name="settings_section_updates">Updates</string>
+    <string name="settings_guide_width">Guide layout</string>
+    <string name="settings_guide_width_description">Column widths, row height and text size in the guide</string>
+    <string name="settings_guide_row_height">Guide row height</string>
+    <string name="settings_guide_row_height_description">How tall each channel row is in the guide</string>
+    <string name="settings_guide_text_size">Guide text size</string>
+    <string name="settings_guide_text_size_description">Size of the channel and programme text in the guide; rows grow to fit</string>
+    <string name="settings_guide_preview_channel">Channel %1$d</string>
+    <string name="settings_guide_preview_programme">Programme</string>
 </resources>

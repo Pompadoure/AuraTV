@@ -16,4 +16,12 @@
     <string name="settings_section_start_home">Start och Hem</string>
     <string name="settings_section_menus_remote">Menyer och fjärrkontroll</string>
     <string name="settings_section_updates">Uppdateringar</string>
+    <string name="settings_guide_width">Guidens layout</string>
+    <string name="settings_guide_width_description">Kolumnbredder, radhöjd och textstorlek i guiden</string>
+    <string name="settings_guide_row_height">Radhöjd i guiden</string>
+    <string name="settings_guide_row_height_description">Hur höga kanalraderna är i guiden</string>
+    <string name="settings_guide_text_size">Textstorlek i guiden</string>
+    <string name="settings_guide_text_size_description">Storlek på kanal- och programtext i guiden. Raderna växer så att texten får plats</string>
+    <string name="settings_guide_preview_channel">Kanal %1$d</string>
+    <string name="settings_guide_preview_programme">Program</string>
 </resources>
