@@ -988,18 +988,21 @@ class LiveViewModel(
     private val live = tv.own.owntv.player.LiveTuneController(
         scope = viewModelScope,
         engines = tv.own.owntv.player.EnginePair(previewEngine, player),
-        host = tv.own.owntv.player.LiveTuneController.CoreHost(
-            context = appContext,
-            settings = settings,
-            sourceDao = sourceDao,
-            resolver = streamUrlResolver,
-            forceMpvStore = forceMpvStore,
-            label = ::channelNumberLabel,
-            // The warm playlist map, so a preview on a focus step never waits on the database.
-            sourceLookup = { id -> sourceById[id] },
-            // A handover re-opens the channel at its live edge: the rewind is over.
-            backToLiveEdge = { clearTimeshift() },
-            downloadHolds = downloadWatchGuard::holdsOnlyStream,
+        host = AutoPinHost(
+            scope = viewModelScope,
+            inner = tv.own.owntv.player.LiveTuneController.CoreHost(
+                context = appContext,
+                settings = settings,
+                sourceDao = sourceDao,
+                resolver = streamUrlResolver,
+                forceMpvStore = forceMpvStore,
+                label = ::channelNumberLabel,
+                // The warm playlist map, so a preview on a focus step never waits on the database.
+                sourceLookup = { id -> sourceById[id] },
+                // A handover re-opens the channel at its live edge: the rewind is over.
+                backToLiveEdge = { clearTimeshift() },
+                downloadHolds = downloadWatchGuard::holdsOnlyStream,
+            ),
         ),
     )
 
