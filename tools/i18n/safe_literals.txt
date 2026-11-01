@@ -659,6 +659,7 @@
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	startup-settled
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	vtt
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	webvtt
+1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	zapDip
 1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	·
 8	technical	app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt	\0
 1	log	app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt	OwnTVHome
