@@ -134,8 +134,7 @@ fun StageClock(weatherInfo: WeatherInfo?, fahrenheit: Boolean, colors: ClockColo
     val weatherColor = clockColor(colors.weather, StageColors.Muted)
     val context = LocalContext.current
     val locale = LocalConfiguration.current.locales[0]
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(Unit) { while (true) { delay(15_000); now = System.currentTimeMillis() } }
+    val now by tv.own.owntv.ui.format.rememberMinuteClock()
     val time = remember(now) { DateFormat.getTimeFormat(context).format(Date(now)) }
     val date = remember(now, locale) {
         android.text.format.DateFormat.format(DateFormat.getBestDateTimePattern(locale, "EEEdMMM"), now).toString()

@@ -3,6 +3,8 @@ package tv.own.owntv.ui.format
 import android.content.Context
 import android.text.format.DateFormat
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -103,4 +105,17 @@ private fun bestDateFormatter(
 ): SimpleDateFormat {
     val pattern = DateFormat.getBestDateTimePattern(locale, skeleton)
     return SimpleDateFormat(pattern, locale).apply { this.timeZone = timeZone }
+}
+
+/**
+ * The wall clock, refreshed exactly when the minute changes. Every on-screen clock and the guide's now-line read
+ * this one, so they never disagree (separate timers with different phases showed different minutes for a while).
+ */
+@Composable
+fun rememberMinuteClock(): State<Long> = produceState(initialValue = System.currentTimeMillis()) {
+    while (true) {
+        val n = System.currentTimeMillis()
+        kotlinx.coroutines.delay(60_000L - n % 60_000L + 30L)
+        value = System.currentTimeMillis()
+    }
 }

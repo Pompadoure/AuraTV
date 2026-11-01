@@ -1250,10 +1250,12 @@ fun OwnTVShell(
        // The guide fades and settles back into place when the player leaves (200 ms, GPU only: alpha and
        // scale on one layer). Animations Off skips it.
        val browseAlpha by androidx.compose.animation.core.animateFloatAsState(
-           targetValue = if (keepLiveBehind && !frame.exiting && !frame.awaiting) 0f else 1f,
+           // Stays fully visible while the picture grows over it (fading it out showed the dark backdrop as a
+           // black box around the growing frame); it goes once the frame has landed and covers everything.
+           targetValue = if (keepLiveBehind && !frame.exiting && !frame.awaiting && !frame.active) 0f else 1f,
            animationSpec = androidx.compose.animation.core.tween(
                if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0
-               else if (keepLiveBehind && !frame.exiting) TransitionPrefs.enterMs(auraContext) else TransitionPrefs.exitMs(auraContext),
+               else if (keepLiveBehind && !frame.exiting) (if (frame.active) 0 else 1) else TransitionPrefs.exitMs(auraContext),
            ),
            label = "browseAlpha",
        )

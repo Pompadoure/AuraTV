@@ -211,12 +211,7 @@ fun EpgScreen(
     // Live TV's view model: its preview player (no second decoder), its category list and playlist marks.
     val liveVm: LiveViewModel = koinViewModel()
     val state by vm.state.collectAsStateWithLifecycle()
-    val liveNow by produceState(initialValue = System.currentTimeMillis()) {
-        while (true) {
-            delay(30_000L)
-            value = System.currentTimeMillis()
-        }
-    }
+    val liveNow by tv.own.owntv.ui.format.rememberMinuteClock()
     val query by vm.query.collectAsStateWithLifecycle()
     val matching by vm.matching.collectAsStateWithLifecycle()
     val review by vm.review.collectAsStateWithLifecycle()
