@@ -878,7 +878,8 @@ fun PlayerHud(
             // the panel's own countdown and the engine re-asks by itself. The line under the spinner says
             // why nothing is happening yet, so nobody reaches for Retry (or thinks the channel is dead).
             buffering -> Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                OwnTVSpinner(sizeDp = 56)
+                // Quiet for the first seconds: a normal channel start is not worth an animation.
+                if (tv.own.owntv.ui.components.rememberDelayedFlag(true)) OwnTVSpinner(sizeDp = 56)
                 val stalledSince = stalledSinceMs
                 if (providerBackOff == null && stalledSince != null) {
                     val showNotice by produceState(false, stalledSince) {

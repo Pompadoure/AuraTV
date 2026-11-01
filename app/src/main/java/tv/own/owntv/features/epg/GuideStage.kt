@@ -135,7 +135,7 @@ internal fun GuideVideo(
             }
         }
         if (playing) tv.own.owntv.player.ExoPreviewSurface(engine = previewEngine, modifier = Modifier.fillMaxSize())
-        if (showVideo && previewState == tv.own.owntv.player.LivePreviewEngine.State.LOADING) OwnTVSpinner(sizeDp = 24)
+        if (tv.own.owntv.ui.components.rememberDelayedFlag(showVideo && previewState == tv.own.owntv.player.LivePreviewEngine.State.LOADING)) OwnTVSpinner(sizeDp = 24)
         Box(Modifier.fillMaxSize().previewChrome().background(Brush.verticalGradient(0.58f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.72f))))
         Box(Modifier.fillMaxSize().drawBehind { drawInnerRing(Color.White.copy(alpha = 0.08f), 1.mpx.toPx(), r.toPx()) })
         if (channel != null) {
