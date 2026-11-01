@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -156,4 +157,4 @@ internal object PreviewChrome {
     var alpha by mutableFloatStateOf(1f)
 }
 
-internal fun Modifier.previewChrome(): Modifier = androidx.compose.ui.graphics.graphicsLayer { alpha = PreviewChrome.alpha }
+internal fun Modifier.previewChrome(): Modifier = graphicsLayer { alpha = PreviewChrome.alpha }
