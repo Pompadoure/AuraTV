@@ -647,10 +647,14 @@
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	guide not ready after 4s
 1	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	home_hero_hidden_$pid
 2	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	menu_labels_when_focused
+1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	no still
+1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	open player
+1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	player first frame
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	shell-composed
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	srt
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	ssa
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	startup-settled
+1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	still taken
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	vtt
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	webvtt
 1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	·

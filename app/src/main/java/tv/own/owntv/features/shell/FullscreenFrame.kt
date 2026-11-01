@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -62,8 +63,9 @@ internal class FullscreenFrame {
     var active by mutableStateOf(false)
     /** Travelling back to the preview: the guide behind fades in meanwhile. */
     var exiting by mutableStateOf(false)
-    /** Growing out of the preview: waiting (briefly) for the player's own surface to draw its first frame. */
-    var awaiting by mutableStateOf(false)
+    /** The preview's picture as a still, drawn over the player until the player has its own first frame. */
+    var snapshot by mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null)
+    var snapshotAlpha by mutableFloatStateOf(1f)
     /** The preview box's corner radius in px, copied when a travel starts; the frame squares up as it grows. */
     var cornerPx by mutableFloatStateOf(0f)
     private var job: Job? = null
@@ -79,8 +81,7 @@ internal class FullscreenFrame {
 
 /**
  * Fills the window at progress 1, the [FullscreenFrame.from] rectangle at 0 — with the preview's rounded
- * corners at 0 and square ones at 1 — and black behind the picture (not while [FullscreenFrame.awaiting]: then
- * the preview's own last picture still shows through).
+ * corners at 0 and square ones at 1 — and black behind the picture.
  */
 internal fun Modifier.fullscreenFrame(frame: FullscreenFrame): Modifier = this
     .layout { measurable, constraints ->
@@ -105,7 +106,7 @@ internal fun Modifier.fullscreenFrame(frame: FullscreenFrame): Modifier = this
             }
         }
     }
-    .then(if (frame.awaiting) Modifier else Modifier.background(Color.Black))
+    .background(Color.Black)
 
 /**
  * User-tunable length of the two travels, in milliseconds: preview -> full screen ([enterMs]) and full screen
@@ -157,4 +158,8 @@ internal object PreviewChrome {
     var alpha by mutableFloatStateOf(1f)
 }
 
-internal fun Modifier.previewChrome(): Modifier = graphicsLayer { alpha = PreviewChrome.alpha }
+internal fun Modifier.previewChrome(): Modifier = graphicsLayer {
+    val a = PreviewChrome.alpha
+    alpha = a
+    translationY = (1f - a) * 10.dp.toPx()
+}
