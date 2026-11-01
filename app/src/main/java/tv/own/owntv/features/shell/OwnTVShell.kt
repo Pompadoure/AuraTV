@@ -182,6 +182,8 @@ fun OwnTVShell(
     // cursor visibly walks rail → channel → programme. Cleared by the guide's onRestored (and by a timeout).
     // True for the last moments of the shrink: the preview builds its own surface under the player.
     var previewSurfaceEarly by remember { mutableStateOf(false) }
+    // The running grow/shrink coroutine, so a Back (or a new open) in the middle of one replaces it.
+    val travel = remember { arrayOfNulls<kotlinx.coroutines.Job>(1) }
     var returningToGuide by remember { mutableStateOf(false) }
     // The full-screen player's travel between the guide's preview rectangle and the window (see FullscreenFrame).
     val frame = remember { FullscreenFrame() }
@@ -637,11 +639,29 @@ fun OwnTVShell(
             previewRect != null && shellAnimationLevel != tv.own.owntv.core.theme.AnimationLevel.OFF
         ) {
             frame.from = previewRect
+            frame.cornerPx = PreviewBounds.radiusPx
             frame.progress = 0f
             frame.exiting = false
             frame.active = true
-            scope.launch {
+            // The engine moves from the preview's surface to the player's. Keep the preview's own surface (and
+            // its last picture) on screen until the player's has drawn a frame, then grow: no black gap, and
+            // the picture is already in the frame when it starts to move.
+            val handOver = liveVm.livePreviewEnabled.value && liveVm.previewArmed.value
+            val tick = liveVm.previewEngine.renderedFrameTick
+            val before = tick.value
+            if (handOver) {
+                frame.awaiting = true
+                previewSurfaceEarly = true
+            }
+            travel[0]?.cancel()
+            travel[0] = scope.launch {
                 withFrameNanos { }
+                if (handOver) {
+                    kotlinx.coroutines.withTimeoutOrNull(350) { tick.first { it != before } }
+                    frame.awaiting = false
+                    previewSurfaceEarly = false
+                    withFrameNanos { }
+                }
                 frame.animateTo(scope, 1f, TransitionPrefs.ms(auraContext)) { frame.active = false }
             }
         }
@@ -693,7 +713,11 @@ fun OwnTVShell(
             // and the player leaves once both the shrink and the guide's focus are done.
             returningToGuide = true
             restoreFocus = true
+            travel[0]?.cancel()
+            frame.awaiting = false
+            previewSurfaceEarly = false
             val rect = PreviewBounds.rect
+            frame.cornerPx = PreviewBounds.radiusPx
             val animate = rect != null && shellAnimationLevel != tv.own.owntv.core.theme.AnimationLevel.OFF
             if (animate) {
                 if (!frame.active) frame.progress = 1f
@@ -701,12 +725,17 @@ fun OwnTVShell(
                 frame.exiting = true
                 frame.active = true
             }
-            scope.launch {
+            travel[0] = scope.launch {
                 withFrameNanos { }
                 val shrink = if (animate) frame.animateTo(scope, 0f, TransitionPrefs.ms(auraContext)) else null
-                kotlinx.coroutines.withTimeoutOrNull(700) {
+                // Right after start-up the guide behind the player may still be loading its channels, and
+                // cannot take focus until it has: taking the player away first would drop focus into the side
+                // menu. So wait for the guide (it usually answers within a frame or two), with a generous
+                // limit for a slow first load.
+                val ready = kotlinx.coroutines.withTimeoutOrNull(4000) {
                     androidx.compose.runtime.snapshotFlow { restoreFocus }.first { !it }
                 }
+                if (ready == null) tv.own.owntv.features.epg.TransitionLog.mark("guide not ready after 4s")
                 shrink?.join()
                 if (playerMode == PlayerMode.FULLSCREEN) {
                     // Hand the picture to the preview's own surface BEFORE the player lets go: the player's
@@ -1206,7 +1235,7 @@ fun OwnTVShell(
        // The guide fades and settles back into place when the player leaves (200 ms, GPU only: alpha and
        // scale on one layer). Animations Off skips it.
        val browseAlpha by androidx.compose.animation.core.animateFloatAsState(
-           targetValue = if (keepLiveBehind && !frame.exiting) 0f else 1f,
+           targetValue = if (keepLiveBehind && !frame.exiting && !frame.awaiting) 0f else 1f,
            animationSpec = androidx.compose.animation.core.tween(
                if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0 else TransitionPrefs.ms(auraContext),
            ),
@@ -1215,10 +1244,8 @@ fun OwnTVShell(
        Box(
         if (keepLiveBehind || browseAlpha < 1f) Modifier.fillMaxSize()
             .graphicsLayer {
+                // Fade only: the guide must not change size while the picture travels.
                 alpha = browseAlpha
-                val z = 1f + (1f - browseAlpha) * 0.025f
-                scaleX = z
-                scaleY = z
             }
             // Focusable only while the player hands focus over (see exitPlayer); never behind it otherwise.
             .focusProperties { canFocus = !keepLiveBehind || returningToGuide }

@@ -274,7 +274,7 @@ internal fun LiveStagePane(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
-                .reportPreviewBounds()
+                .reportPreviewBounds(videoR)
                 .drawBehind {
                     drawBoxShadow(videoShadow, 80.mpx.toPx(), videoR.toPx(), dy = 30.mpx.toPx())
                 }

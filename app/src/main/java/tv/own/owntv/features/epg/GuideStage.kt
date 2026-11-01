@@ -122,7 +122,7 @@ internal fun GuideVideo(
     Box(
         modifier
             .aspectRatio(16f / 9f)
-            .reportPreviewBounds()
+            .reportPreviewBounds(r)
             .drawBehind { drawBoxShadow(videoShadow, 80.mpx.toPx(), r.toPx(), dy = 30.mpx.toPx()) }
             .clip(RoundedCornerShape(r))
             .background(Color.Black),

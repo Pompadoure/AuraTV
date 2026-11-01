@@ -32,12 +32,20 @@ import kotlin.math.roundToInt
 internal object PreviewBounds {
     @Volatile
     var rect: Rect? = null
+
+    /** Corner radius of the preview box, in pixels: the travelling picture wears the same corners. */
+    @Volatile
+    var radiusPx: Float = 0f
 }
 
 /** Reports the modified box as the preview rectangle; forgets it when the box leaves the screen. */
-internal fun Modifier.reportPreviewBounds(): Modifier = composed {
+internal fun Modifier.reportPreviewBounds(cornerRadius: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp(0f)): Modifier = composed {
+    val density = androidx.compose.ui.platform.LocalDensity.current
     DisposableEffect(Unit) { onDispose { PreviewBounds.rect = null } }
-    onGloballyPositioned { PreviewBounds.rect = it.boundsInWindow() }
+    onGloballyPositioned {
+        PreviewBounds.rect = it.boundsInWindow()
+        PreviewBounds.radiusPx = with(density) { cornerRadius.toPx() }
+    }
 }
 
 /**
@@ -53,6 +61,10 @@ internal class FullscreenFrame {
     var active by mutableStateOf(false)
     /** Travelling back to the preview: the guide behind fades in meanwhile. */
     var exiting by mutableStateOf(false)
+    /** Growing out of the preview: waiting (briefly) for the player's own surface to draw its first frame. */
+    var awaiting by mutableStateOf(false)
+    /** The preview box's corner radius in px, copied when a travel starts; the frame squares up as it grows. */
+    var cornerPx by mutableFloatStateOf(0f)
     private var job: Job? = null
 
     fun animateTo(scope: CoroutineScope, to: Float, millis: Int, then: () -> Unit = {}): Job {
@@ -64,7 +76,11 @@ internal class FullscreenFrame {
     }
 }
 
-/** Fills the window at progress 1, the [FullscreenFrame.from] rectangle at 0, black behind the picture. */
+/**
+ * Fills the window at progress 1, the [FullscreenFrame.from] rectangle at 0 — with the preview's rounded
+ * corners at 0 and square ones at 1 — and black behind the picture (not while [FullscreenFrame.awaiting]: then
+ * the preview's own last picture still shows through).
+ */
 internal fun Modifier.fullscreenFrame(frame: FullscreenFrame): Modifier = this
     .layout { measurable, constraints ->
         val w = constraints.maxWidth
@@ -80,10 +96,15 @@ internal fun Modifier.fullscreenFrame(frame: FullscreenFrame): Modifier = this
             val fx = (r.left * (1f - t)).roundToInt()
             val fy = (r.top * (1f - t)).roundToInt()
             val p = measurable.measure(Constraints.fixed(fw, fh))
-            layout(w, h) { p.place(fx, fy) }
+            layout(w, h) {
+                p.placeWithLayer(fx, fy) {
+                    clip = true
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(frame.cornerPx * (1f - frame.progress.coerceIn(0f, 1f)))
+                }
+            }
         }
     }
-    .background(Color.Black)
+    .then(if (frame.awaiting) Modifier else Modifier.background(Color.Black))
 
 /**
  * User-tunable length of the full-screen <-> preview travel, in milliseconds. Stored in the app's own
