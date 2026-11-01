@@ -178,8 +178,10 @@ fun SettingsScreen(
     var showEpgOffset by remember { mutableStateOf(false) }
     var showGuideDays by remember { mutableStateOf(false) }
     var showAnimations by remember { mutableStateOf(false) }
-    var showTravel by remember { mutableStateOf(false) }
-    val travelRowFocus = remember { FocusRequester() }
+    var showTravelEnter by remember { mutableStateOf(false) }
+    var showTravelExit by remember { mutableStateOf(false) }
+    val travelEnterRowFocus = remember { FocusRequester() }
+    val travelExitRowFocus = remember { FocusRequester() }
     val travelCtx = androidx.compose.ui.platform.LocalContext.current
     var showVodLayout by remember { mutableStateOf(false) }
     var showNavigation by remember { mutableStateOf(false) }
@@ -261,13 +263,13 @@ fun SettingsScreen(
         }
         onStartConsumed()
     }
-    val anyDialogOpen = showZoom || showPopupSize || showTheme || showAccent || showUpdate || showCatchupTime || showCatchupSources || showCatchupSourceValue || showEpgOffset || showGuideDays || showAnimations || showTravel || showStartup || showStartupChannelPicker || showAfrWarning || showLivePreviewPanelWarning || showBgImageChooser || showBgPicker || showAmbientGlow || showFocusHighlight || showBgRemote || showVodLayout || showNavigation || showLiveLayout || stageSettings.open != null
+    val anyDialogOpen = showZoom || showPopupSize || showTheme || showAccent || showUpdate || showCatchupTime || showCatchupSources || showCatchupSourceValue || showEpgOffset || showGuideDays || showAnimations || showTravelEnter || showTravelExit || showStartup || showStartupChannelPicker || showAfrWarning || showLivePreviewPanelWarning || showBgImageChooser || showBgPicker || showAmbientGlow || showFocusHighlight || showBgRemote || showVodLayout || showNavigation || showLiveLayout || stageSettings.open != null
     // When a dialog closes, restore focus to the row that opened it. NOTE: this restore crosses
     // INTO the root focus group from outside (the dialog), but onEnter does NOT fire for programmatic
     // requestsFocus (only for directional entry) — so dialogReturn must be cleared HERE, not in onEnter.
     // If it's left set, the next directional entry (e.g. sidebar→here) would re-route to a stale row.
     var dialogReturn by remember { mutableStateOf<FocusRequester?>(null) }
-    LaunchedEffect(showZoom, showPopupSize, showTheme, showAccent, showUpdate, showCatchupTime, showCatchupSources, showCatchupSourceValue, showEpgOffset, showGuideDays, showAnimations, showTravel, showStartup, showStartupChannelPicker, showAfrWarning, showLivePreviewPanelWarning, showBgImageChooser, showBgPicker, showAmbientGlow, showFocusHighlight, showBgRemote, showVodLayout, showNavigation, showLiveLayout, stageSettings.open) {
+    LaunchedEffect(showZoom, showPopupSize, showTheme, showAccent, showUpdate, showCatchupTime, showCatchupSources, showCatchupSourceValue, showEpgOffset, showGuideDays, showAnimations, showTravelEnter, showTravelExit, showStartup, showStartupChannelPicker, showAfrWarning, showLivePreviewPanelWarning, showBgImageChooser, showBgPicker, showAmbientGlow, showFocusHighlight, showBgRemote, showVodLayout, showNavigation, showLiveLayout, stageSettings.open) {
         // Only after a popup really closed: on first composition there is no opener, and holding a stale
         // offset for the settle frames bounced the page.
         if (!anyDialogOpen && dialogReturn != null) {
@@ -628,11 +630,18 @@ fun SettingsScreen(
             onClick = { saveScroll(); dialogReturn = animationsRowFocus; showAnimations = true },
         ),
         RootRow(
-            "transition_time", TileTone.SECONDARY, OwnTVIcon.MOTION,
-            title = stringResource(R.string.aura_transition_time), desc = stringResource(R.string.aura_transition_time_description),
-            chip = stringResource(R.string.aura_ms_value, tv.own.owntv.features.shell.TransitionPrefs.ms(travelCtx)), chipTone = TileTone.SECONDARY,
-            focus = travelRowFocus,
-            onClick = { saveScroll(); dialogReturn = travelRowFocus; showTravel = true },
+            "transition_enter", TileTone.SECONDARY, OwnTVIcon.MOTION,
+            title = stringResource(R.string.aura_transition_enter), desc = stringResource(R.string.aura_transition_enter_description),
+            chip = stringResource(R.string.aura_ms_value, tv.own.owntv.features.shell.TransitionPrefs.enterMs(travelCtx)), chipTone = TileTone.SECONDARY,
+            focus = travelEnterRowFocus,
+            onClick = { saveScroll(); dialogReturn = travelEnterRowFocus; showTravelEnter = true },
+        ),
+        RootRow(
+            "transition_exit", TileTone.SECONDARY, OwnTVIcon.MOTION,
+            title = stringResource(R.string.aura_transition_exit), desc = stringResource(R.string.aura_transition_exit_description),
+            chip = stringResource(R.string.aura_ms_value, tv.own.owntv.features.shell.TransitionPrefs.exitMs(travelCtx)), chipTone = TileTone.SECONDARY,
+            focus = travelExitRowFocus,
+            onClick = { saveScroll(); dialogReturn = travelExitRowFocus; showTravelExit = true },
         ),
         navigationRootRow(settingsVm, navigationRowFocus) { saveScroll(); dialogReturn = navigationRowFocus; showNavigation = true }
             .copy(heading = stringResource(R.string.settings_section_navigation_layout)),
@@ -1018,8 +1027,10 @@ fun SettingsScreen(
                 chip = stringResource(if (brandAccent) R.string.common_on else R.string.common_off), chipTone = TileTone.SECONDARY, showChevron = false) { settingsVm.setBrandAccentTriangle(!brandAccent) },
             SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.settings_animations), stringResource(R.string.settings_search_keywords_animation), OwnTVIcon.MOTION, TileTone.SECONDARY,
                 chip = stringResource(animationLevel.labelRes), chipTone = TileTone.SECONDARY) { saveScroll(); dialogReturn = searchFieldFocus; showAnimations = true },
-            SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.aura_transition_time), stringResource(R.string.settings_search_keywords_animation), OwnTVIcon.MOTION, TileTone.SECONDARY,
-                chip = stringResource(R.string.aura_ms_value, tv.own.owntv.features.shell.TransitionPrefs.ms(travelCtx)), chipTone = TileTone.SECONDARY) { saveScroll(); dialogReturn = searchFieldFocus; showTravel = true },
+            SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.aura_transition_enter), stringResource(R.string.settings_search_keywords_animation), OwnTVIcon.MOTION, TileTone.SECONDARY,
+                chip = stringResource(R.string.aura_ms_value, tv.own.owntv.features.shell.TransitionPrefs.enterMs(travelCtx)), chipTone = TileTone.SECONDARY) { saveScroll(); dialogReturn = searchFieldFocus; showTravelEnter = true },
+            SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.aura_transition_exit), stringResource(R.string.settings_search_keywords_animation), OwnTVIcon.MOTION, TileTone.SECONDARY,
+                chip = stringResource(R.string.aura_ms_value, tv.own.owntv.features.shell.TransitionPrefs.exitMs(travelCtx)), chipTone = TileTone.SECONDARY) { saveScroll(); dialogReturn = searchFieldFocus; showTravelExit = true },
             SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.settings_weather), stringResource(R.string.settings_search_keywords_weather), OwnTVIcon.WEATHER, TileTone.SECONDARY,
                 chip = if (weatherEnabled) stringResource(R.string.common_on) else stringResource(R.string.common_off), chipTone = if (weatherEnabled) TileTone.PRIMARY else TileTone.SECONDARY) { open(SettingsTab.WEATHER) },
             SettingsSearchEntry(tv.own.owntv.features.settings.videoRowPath("vp_live_preview"), stringResource(R.string.settings_quick_live_preview), stringResource(R.string.settings_search_keywords_live_preview), OwnTVIcon.LIVE_TV, TileTone.TERTIARY,
@@ -1297,7 +1308,8 @@ fun SettingsScreen(
     if (showTheme) ThemeDialogHost(settingsVm, themeMode, onClose = { showTheme = false })
     if (showStartup) StartupDialogHost(settingsVm, startupMode, onClose = { showStartup = false }, onPickChannel = { showStartupChannelPicker = true })
     if (showStartupChannelPicker) StartupChannelPickerHost(settingsVm, startupChannel, onClose = { showStartupChannelPicker = false })
-    if (showTravel) TravelDialogHost(onClose = { showTravel = false })
+    if (showTravelEnter) TravelDialogHost(enter = true, onClose = { showTravelEnter = false })
+    if (showTravelExit) TravelDialogHost(enter = false, onClose = { showTravelExit = false })
     if (showAnimations) AnimationsDialogHost(settingsVm, animationLevel, onClose = { showAnimations = false })
     if (showNavigation) {
         NavigationPopupHost(settingsVm, onDismiss = { showNavigation = false })
@@ -2916,14 +2928,15 @@ private fun serviceRowExtras(vm: SettingsViewModel): Map<String, RowExtra> {
 }
 
 @Composable
-private fun TravelDialogHost(onClose: () -> Unit) {
+private fun TravelDialogHost(enter: Boolean, onClose: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    val current = tv.own.owntv.features.shell.TransitionPrefs.ms(ctx)
+    val prefs = tv.own.owntv.features.shell.TransitionPrefs
+    val current = if (enter) prefs.enterMs(ctx) else prefs.exitMs(ctx)
     tv.own.owntv.features.settings.PickerDialog(
-        title = stringResource(R.string.aura_transition_time),
-        options = tv.own.owntv.features.shell.TransitionPrefs.PRESETS.map { it.toString() to stringResource(R.string.aura_ms_value, it) },
+        title = stringResource(if (enter) R.string.aura_transition_enter else R.string.aura_transition_exit),
+        options = prefs.PRESETS.map { it.toString() to stringResource(R.string.aura_ms_value, it) },
         selected = current.toString(),
-        onSelect = { tv.own.owntv.features.shell.TransitionPrefs.set(ctx, it.toInt()) },
+        onSelect = { if (enter) prefs.setEnterMs(ctx, it.toInt()) else prefs.setExitMs(ctx, it.toInt()) },
         onDismiss = { onClose() },
     )
 }

@@ -286,7 +286,11 @@ fun EpgScreen(
     // Row stage (false): ▲ ▼ move between channels, ◀ leaves for the menu. Cell stage (true): ◀ ▶ go
     // through the programmes. Without it, reaching the channel list meant ◀ past every programme.
     var inCellMode by remember { mutableStateOf(false) }
-    BackHandler(enabled = inCellMode && gridHasFocus) { inCellMode = false }
+    // Back from a programme now does what Back from a channel does (opens the side menu); HOLDING Back goes to
+    // the channel stage instead. Timed from the first KeyDown like the shell's own long-press Back (several TVs
+    // re-fire KeyDown while a key is held); a short Back is never consumed here, only the Up that ends a hold.
+    var backHoldJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var backLongFired by remember { mutableStateOf(false) }
     // The programme the block on top shows and the buttons act on: the one under the cursor.
     var selected by remember { mutableStateOf<Pair<ChannelEntity, EpgProgrammeEntity?>?>(null) }
 
@@ -621,6 +625,30 @@ fun EpgScreen(
                                 .padding(start = fx(48), end = fx(64), top = 48.mpx)
                                 .fillMaxSize()
                                 .onFocusChanged { gridHasFocus = it.hasFocus }
+                                .onPreviewKeyEvent { e ->
+                                    if (e.key != androidx.compose.ui.input.key.Key.Back) return@onPreviewKeyEvent false
+                                    when (e.type) {
+                                        androidx.compose.ui.input.key.KeyEventType.KeyDown -> {
+                                            if (inCellMode && backHoldJob == null) {
+                                                backLongFired = false
+                                                backHoldJob = scope.launch {
+                                                    kotlinx.coroutines.delay(600)
+                                                    backLongFired = true
+                                                    inCellMode = false
+                                                }
+                                            }
+                                            false
+                                        }
+                                        androidx.compose.ui.input.key.KeyEventType.KeyUp -> {
+                                            backHoldJob?.cancel()
+                                            backHoldJob = null
+                                            val fired = backLongFired
+                                            backLongFired = false
+                                            fired
+                                        }
+                                        else -> false
+                                    }
+                                }
                                 .focusProperties { onEnter = { runCatching { rowFocus(focusedRow.coerceIn(0, state.channels.size - 1)).requestFocus() } } }
                                 .focusGroup(),
                             verticalArrangement = Arrangement.spacedBy(GuideGridDefaults.RowGap),
@@ -953,7 +981,7 @@ private fun GuideEmpty(title: String, body: String? = null, action: String? = nu
 /**
  * How to move, under the programme beside the video (in place of action buttons,
  * which could not be reached without leaving the channel — they are all in Hold OK's menu). At row level:
- * OK Browse · ▲▼ Channels · ◀ Menu · Hold OK Options; inside a row: OK Watch · ◀ ▶ Programs · Back Channels.
+ * OK Browse · ▲▼ Channels · ◀ Menu · Hold OK Options; inside a row: OK Watch · ◀ ▶ Programs · Back Menu · Hold Back Channels.
  */
 @Composable
 private fun GuideKeyHints(cellMode: Boolean) {
@@ -961,7 +989,8 @@ private fun GuideKeyHints(cellMode: Boolean) {
         listOf(
             stringResource(R.string.common_ok) to stringResource(R.string.content_key_watch),
             "◀ ▶" to stringResource(R.string.content_key_programmes),
-            stringResource(R.string.common_back) to stringResource(R.string.content_key_channels),
+            stringResource(R.string.common_back) to stringResource(R.string.content_key_menu),
+            stringResource(R.string.aura_key_hold_back) to stringResource(R.string.content_key_channels),
             stringResource(R.string.content_key_hold_ok) to stringResource(R.string.content_key_options),
         )
     } else {

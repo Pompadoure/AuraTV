@@ -223,6 +223,15 @@ fun OwnTVShell(
     // focused"). Stored settings cannot carry a new default, so it is applied once per install; the stored
     // values are read fresh (the collected ones above are still their initial values at first composition).
     val auraContext = androidx.compose.ui.platform.LocalContext.current
+    // The preview's badge and title line fade in once the picture has landed (see PreviewChrome).
+    val chromeVisible = playerMode == PlayerMode.NONE && !frame.active
+    LaunchedEffect(chromeVisible, shellAnimationLevel) {
+        val ms = if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0 else if (chromeVisible) 300 else 120
+        androidx.compose.animation.core.animate(
+            PreviewChrome.alpha, if (chromeVisible) 1f else 0f,
+            animationSpec = androidx.compose.animation.core.tween(ms),
+        ) { v, _ -> PreviewChrome.alpha = v }
+    }
     LaunchedEffect(Unit) {
         val prefs = auraContext.getSharedPreferences("aura_defaults", android.content.Context.MODE_PRIVATE)
         if (prefs.getBoolean("menu_labels_when_focused", false)) return@LaunchedEffect
@@ -662,7 +671,7 @@ fun OwnTVShell(
                     previewSurfaceEarly = false
                     withFrameNanos { }
                 }
-                frame.animateTo(scope, 1f, TransitionPrefs.ms(auraContext)) { frame.active = false }
+                frame.animateTo(scope, 1f, TransitionPrefs.enterMs(auraContext)) { frame.active = false }
             }
         }
         if (playerMode != PlayerMode.MINI) playerMode = PlayerMode.FULLSCREEN
@@ -727,7 +736,7 @@ fun OwnTVShell(
             }
             travel[0] = scope.launch {
                 withFrameNanos { }
-                val shrink = if (animate) frame.animateTo(scope, 0f, TransitionPrefs.ms(auraContext)) else null
+                val shrink = if (animate) frame.animateTo(scope, 0f, TransitionPrefs.exitMs(auraContext)) else null
                 // Right after start-up the guide behind the player may still be loading its channels, and
                 // cannot take focus until it has: taking the player away first would drop focus into the side
                 // menu. So wait for the guide (it usually answers within a frame or two), with a generous
@@ -1237,7 +1246,8 @@ fun OwnTVShell(
        val browseAlpha by androidx.compose.animation.core.animateFloatAsState(
            targetValue = if (keepLiveBehind && !frame.exiting && !frame.awaiting) 0f else 1f,
            animationSpec = androidx.compose.animation.core.tween(
-               if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0 else TransitionPrefs.ms(auraContext),
+               if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0
+               else if (keepLiveBehind && !frame.exiting) TransitionPrefs.enterMs(auraContext) else TransitionPrefs.exitMs(auraContext),
            ),
            label = "browseAlpha",
        )

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="aura_transition_time">Preview transition time</string>
-    <string name="aura_transition_time_description">How long the picture takes to grow to full screen and shrink back into the preview</string>
+    <string name="aura_transition_enter">Preview → full screen time</string>
+    <string name="aura_transition_enter_description">How long the picture takes to grow from the preview to full screen</string>
+    <string name="aura_transition_exit">Full screen → preview time</string>
+    <string name="aura_transition_exit_description">How long the picture takes to shrink back into the preview</string>
     <string name="aura_ms_value">%1$d ms</string>
+    <string name="aura_key_hold_back">Hold Back</string>
 </resources>

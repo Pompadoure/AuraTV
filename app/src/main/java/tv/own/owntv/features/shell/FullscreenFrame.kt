@@ -107,31 +107,53 @@ internal fun Modifier.fullscreenFrame(frame: FullscreenFrame): Modifier = this
     .then(if (frame.awaiting) Modifier else Modifier.background(Color.Black))
 
 /**
- * User-tunable length of the full-screen <-> preview travel, in milliseconds. Stored in the app's own
- * SharedPreferences (not core settings) so it needs no core change; the shell and the settings screen
- * share one observable value.
+ * User-tunable length of the two travels, in milliseconds: preview -> full screen ([enterMs]) and full screen
+ * -> preview ([exitMs]). Stored in the app's own SharedPreferences (not core settings) so it needs no core
+ * change; the shell and the settings screen share one observable value each.
  */
 object TransitionPrefs {
-    const val DEFAULT_MS = 440
-    val PRESETS = listOf(200, 300, 440, 600, 800, 1000, 1400)
+    const val DEFAULT_ENTER_MS = 800
+    const val DEFAULT_EXIT_MS = 440
+    val PRESETS = listOf(200, 300, 440, 600, 800, 1000, 1400, 2000)
     private const val FILE = "aura_prefs"
-    private const val KEY = "transition_ms"
+    private const val EXIT_KEY = "transition_ms" // the single setting the first version had: now the exit time
+    private const val ENTER_KEY = "transition_enter_ms"
     private var loaded = false
-    private val state = mutableIntStateOf(DEFAULT_MS)
+    private val enter = mutableIntStateOf(DEFAULT_ENTER_MS)
+    private val exit = mutableIntStateOf(DEFAULT_EXIT_MS)
 
-    fun ms(context: android.content.Context): Int {
-        if (!loaded) {
-            state.intValue = context.applicationContext.getSharedPreferences(FILE, android.content.Context.MODE_PRIVATE)
-                .getInt(KEY, DEFAULT_MS)
-            loaded = true
-        }
-        return state.intValue
+    private fun prefs(context: android.content.Context) =
+        context.applicationContext.getSharedPreferences(FILE, android.content.Context.MODE_PRIVATE)
+
+    private fun load(context: android.content.Context) {
+        if (loaded) return
+        val p = prefs(context)
+        exit.intValue = p.getInt(EXIT_KEY, DEFAULT_EXIT_MS)
+        enter.intValue = p.getInt(ENTER_KEY, DEFAULT_ENTER_MS)
+        loaded = true
     }
 
-    fun set(context: android.content.Context, ms: Int) {
-        ms(context)
-        state.intValue = ms
-        context.applicationContext.getSharedPreferences(FILE, android.content.Context.MODE_PRIVATE)
-            .edit().putInt(KEY, ms).apply()
+    fun enterMs(context: android.content.Context): Int { load(context); return enter.intValue }
+    fun exitMs(context: android.content.Context): Int { load(context); return exit.intValue }
+
+    fun setEnterMs(context: android.content.Context, ms: Int) {
+        load(context); enter.intValue = ms
+        prefs(context).edit().putInt(ENTER_KEY, ms).apply()
+    }
+
+    fun setExitMs(context: android.content.Context, ms: Int) {
+        load(context); exit.intValue = ms
+        prefs(context).edit().putInt(EXIT_KEY, ms).apply()
     }
 }
+
+/**
+ * Opacity of the preview box's own furniture — LIVE badge, channel/programme line, stream chips, the bottom
+ * shade. It is 0 while the picture is full screen or travelling and fades in once the picture has landed, so
+ * the title and badge neither pop in the moment the player leaves nor sit under the shrinking picture.
+ */
+internal object PreviewChrome {
+    var alpha by mutableFloatStateOf(1f)
+}
+
+internal fun Modifier.previewChrome(): Modifier = androidx.compose.ui.graphics.graphicsLayer { alpha = PreviewChrome.alpha }
