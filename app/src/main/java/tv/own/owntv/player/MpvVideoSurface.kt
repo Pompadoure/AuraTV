@@ -222,9 +222,6 @@ fun ExoPreviewSurface(
                     modifier = viewModifier,
                     factory = { ctx ->
                         SurfaceView(ctx).apply {
-                            // The preview's surface (not the full-screen one) can be photographed for the
-                            // preview -> full-screen travel; see PreviewFrameGrabber.
-                            if (!keepAwake) PreviewFrameGrabber.register(this)
                             holder.addCallback(object : SurfaceHolder.Callback {
                                 override fun surfaceCreated(holder: SurfaceHolder) = engine.setSurface(holder.surface)
                                 override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
@@ -344,47 +341,4 @@ private fun anchor(cue: androidx.media3.common.text.Cue, position: SubtitleStyle
             },
         )
         .build()
-}
-
-/**
- * A still of what the Live TV preview is showing right now. The preview's surface is torn down the moment
- * the full-screen player takes the stream (and the player's own surface needs a moment before its first
- * frame), so the picture that grows from the preview to full screen is this photograph, which the real
- * video replaces underneath once it is ready. Best effort: any failure just means "no still".
- */
-object PreviewFrameGrabber {
-    private var ref: java.lang.ref.WeakReference<SurfaceView>? = null
-
-    fun register(view: SurfaceView) { ref = java.lang.ref.WeakReference(view) }
-
-    fun capture(onDone: (android.graphics.Bitmap?) -> Unit) {
-        val view = ref?.get()
-        if (view == null || !view.isAttachedToWindow || view.width <= 0 || view.height <= 0 || !view.holder.surface.isValid) {
-            onDone(null)
-            return
-        }
-        val scale = minOf(1f, 960f / view.width)
-        val bitmap = android.graphics.Bitmap.createBitmap(
-            (view.width * scale).toInt().coerceAtLeast(1), (view.height * scale).toInt().coerceAtLeast(1),
-            android.graphics.Bitmap.Config.ARGB_8888,
-        )
-        try {
-            android.view.PixelCopy.request(
-                view, bitmap,
-                { result -> onDone(bitmap.takeIf { result == android.view.PixelCopy.SUCCESS && !it.looksBlack() }) },
-                android.os.Handler(android.os.Looper.getMainLooper()),
-            )
-        } catch (_: Throwable) {
-            onDone(null)
-        }
-    }
-
-    /** A copy that came back black (a protected or overlay surface) is worse than no still at all. */
-    private fun android.graphics.Bitmap.looksBlack(): Boolean {
-        for (i in 1..6) for (j in 1..6) {
-            val c = getPixel(width * i / 7, height * j / 7)
-            if (android.graphics.Color.red(c) + android.graphics.Color.green(c) + android.graphics.Color.blue(c) > 24) return false
-        }
-        return true
-    }
 }

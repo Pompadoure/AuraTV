@@ -655,35 +655,30 @@ fun OwnTVShell(
             frame.cornerPx = PreviewBounds.radiusPx
             frame.progress = 0f
             frame.exiting = false
+            frame.active = true
+            // The engine moves from the preview's surface to the player's. Keep the preview's own surface (and
+            // its last picture) alive underneath until the player's has taken over, then grow: the real video is
+            // in the frame from the first pixel, exactly as on the way back.
+            val handOver = liveVm.livePreviewEnabled.value && liveVm.previewArmed.value
+            val tick = liveVm.previewEngine.renderedFrameTick
+            val before = tick.value
+            if (handOver) {
+                frame.awaiting = true
+                previewSurfaceEarly = true
+            }
+            tv.own.owntv.features.epg.TransitionLog.begin("open player")
             travel[0]?.cancel()
             travel[0] = scope.launch {
-                tv.own.owntv.features.epg.TransitionLog.begin("open player")
-                // The preview's surface is destroyed the moment the player takes the stream, and the player's
-                // own needs a moment before its first frame: photograph the preview first, grow THAT, and let
-                // the real video replace it underneath. Taken before the mode flips (the surface is still there).
-                val still = kotlinx.coroutines.withTimeoutOrNull(150) {
-                    kotlinx.coroutines.suspendCancellableCoroutine<android.graphics.Bitmap?> { cont ->
-                        tv.own.owntv.player.PreviewFrameGrabber.capture { if (cont.isActive) cont.resumeWith(Result.success(it)) }
-                    }
-                }
-                tv.own.owntv.features.epg.TransitionLog.mark(if (still != null) "still taken" else "no still")
-                frame.snapshot = still?.asImageBitmap()
-                frame.snapshotAlpha = 1f
-                val tick = liveVm.previewEngine.renderedFrameTick
-                val before = tick.value
-                frame.active = true
-                if (playerMode != PlayerMode.MINI) playerMode = PlayerMode.FULLSCREEN
                 withFrameNanos { }
-                frame.animateTo(scope, 1f, TransitionPrefs.enterMs(auraContext)) { frame.active = false }
-                if (still != null) {
-                    // The still stays until the player has drawn its own first frame, then dissolves into it.
-                    kotlinx.coroutines.withTimeoutOrNull(3000) { tick.first { it != before } }
-                    tv.own.owntv.features.epg.TransitionLog.mark("player first frame")
-                    androidx.compose.animation.core.animate(1f, 0f, animationSpec = androidx.compose.animation.core.tween(180)) { v, _ -> frame.snapshotAlpha = v }
-                    frame.snapshot = null
+                if (handOver) {
+                    val got = kotlinx.coroutines.withTimeoutOrNull(300) { tick.first { it != before } }
+                    tv.own.owntv.features.epg.TransitionLog.mark(if (got != null) "hand-over first frame" else "hand-over timeout")
+                    frame.awaiting = false
+                    previewSurfaceEarly = false
+                    withFrameNanos { }
                 }
+                frame.animateTo(scope, 1f, TransitionPrefs.enterMs(auraContext)) { frame.active = false }
             }
-            return
         }
         if (playerMode != PlayerMode.MINI) playerMode = PlayerMode.FULLSCREEN
     }
@@ -764,7 +759,8 @@ fun OwnTVShell(
                         val tick = liveVm.previewEngine.renderedFrameTick
                         val before = tick.value
                         previewSurfaceEarly = true
-                        kotlinx.coroutines.withTimeoutOrNull(350) { tick.first { it != before } }
+                        val got = kotlinx.coroutines.withTimeoutOrNull(350) { tick.first { it != before } }
+                        tv.own.owntv.features.epg.TransitionLog.mark(if (got != null) "hand-over first frame" else "hand-over timeout")
                     }
                     finishExitPlayer(handedOver = true)
                 }
@@ -1254,7 +1250,7 @@ fun OwnTVShell(
        // The guide fades and settles back into place when the player leaves (200 ms, GPU only: alpha and
        // scale on one layer). Animations Off skips it.
        val browseAlpha by androidx.compose.animation.core.animateFloatAsState(
-           targetValue = if (keepLiveBehind && !frame.exiting) 0f else 1f,
+           targetValue = if (keepLiveBehind && !frame.exiting && !frame.awaiting) 0f else 1f,
            animationSpec = androidx.compose.animation.core.tween(
                if (shellAnimationLevel == tv.own.owntv.core.theme.AnimationLevel.OFF) 0
                else if (keepLiveBehind && !frame.exiting) TransitionPrefs.enterMs(auraContext) else TransitionPrefs.exitMs(auraContext),
@@ -1383,7 +1379,8 @@ fun OwnTVShell(
                     homeVm.stopPreview()
                     // Live TV set to play externally → the channel went to another app;
                     // don't mount the fullscreen player over it.
-                    if (playerMode != PlayerMode.MINI && !liveVm.externalPlayerOn.value) playerMode = PlayerMode.FULLSCREEN
+                    // Through openFullscreen, so the picture grows out of the preview like it shrinks back into it.
+                    if (playerMode != PlayerMode.MINI && !liveVm.externalPlayerOn.value) openFullscreen(MainSection.LIVE_TV)
                 }
                 val guidePlayCatchup: (ChannelEntity, tv.own.owntv.core.database.entity.EpgProgrammeEntity) -> Unit = { ch, prog ->
                     restoreFocus = false
@@ -1836,14 +1833,6 @@ fun OwnTVShell(
                 MpvVideoSurface(
                     player = player, modifier = Modifier.fillMaxSize(), autoFrameRate = isFull && !inPip && autoFrameRate,
                     afrMatchResolution = afrMatchResolution, afrHoldSecs = afrPauseSecs,
-                )
-            }
-            // The still of the preview, while the player behind it has no picture of its own yet.
-            frame.snapshot?.let { still ->
-                androidx.compose.foundation.Image(
-                    bitmap = still, contentDescription = null,
-                    contentScale = androidx.compose.ui.layout.ContentScale.FillBounds,
-                    modifier = Modifier.fillMaxSize().graphicsLayer { alpha = frame.snapshotAlpha },
                 )
             }
             // The item has no video track of its own (a radio channel, a music-only "movie"). Playing it is
