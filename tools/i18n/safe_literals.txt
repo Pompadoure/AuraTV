@@ -648,6 +648,7 @@
 2	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	hand-over first frame
 2	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	hand-over timeout
 1	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	home_hero_hidden_$pid
+1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	hudAlpha
 2	preference-key	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	menu_labels_when_focused
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	open player
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	shell-composed
