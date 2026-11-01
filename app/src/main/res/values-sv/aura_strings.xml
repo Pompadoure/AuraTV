@@ -6,4 +6,8 @@
     <string name="aura_transition_exit_description">Hur lång tid bilden tar på sig att krympa tillbaka till förhandstittrutan</string>
     <string name="aura_ms_value">%1$d ms</string>
     <string name="aura_key_hold_back">Håll Back</string>
+    <string name="aura_guide_lock_now">Lås aktuell tid</string>
+    <string name="aura_guide_lock_now_description">Håller nu-linjen på en fast punkt i guiden medan programmen glider förbi</string>
+    <string name="aura_guide_lock_pos">Låst position</string>
+    <string name="aura_guide_lock_pos_description">Var den låsta nu-linjen sitter, som andel av tidslinjen från vänster</string>
 </resources>

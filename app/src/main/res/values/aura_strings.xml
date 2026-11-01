@@ -6,4 +6,8 @@
     <string name="aura_transition_exit_description">How long the picture takes to shrink back into the preview</string>
     <string name="aura_ms_value">%1$d ms</string>
     <string name="aura_key_hold_back">Hold Back</string>
+    <string name="aura_guide_lock_now">Lock current time</string>
+    <string name="aura_guide_lock_now_description">Keep the now-line at a fixed point in the guide while the programmes slide past it</string>
+    <string name="aura_guide_lock_pos">Lock position</string>
+    <string name="aura_guide_lock_pos_description">Where the locked now-line sits, as a share of the timeline from the left</string>
 </resources>

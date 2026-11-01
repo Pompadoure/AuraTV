@@ -48,6 +48,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.res.pluralStringResource
@@ -272,11 +273,25 @@ fun EpgScreen(
     fun timeAt(px: Float): Long = state.windowStart + (px / ppm * 60_000f).toLong()
     // A time is shown 3/8 of the way across, as the guide always had it: the programme on now keeps room
     // on both sides and its title is never cut.
+    // With "lock now" on (Settings › Guide layout) the present moment sits at the chosen point instead.
+    GuideLayoutPrefs.init(LocalContext.current)
+    val lockNow by GuideLayoutPrefs.lockNow.collectAsStateWithLifecycle()
+    val lockPos by GuideLayoutPrefs.lockPos.collectAsStateWithLifecycle()
+    val nowFrac = if (lockNow) lockPos / 100f else 3f / 8f
     fun showTime(t: Long) {
-        scrollPx = (pxAt(t) - timelinePx * 3f / 8f).toInt().coerceIn(0, maxScroll())
+        scrollPx = (pxAt(t) - timelinePx * nowFrac).toInt().coerceIn(0, maxScroll())
     }
     LaunchedEffect(state.windowStart, timelinePx, state.channels.isNotEmpty()) {
         if (timelinePx > 0 && state.channels.isNotEmpty()) showTime(System.currentTimeMillis())
+    }
+    // Locked: the timeline follows the clock, so the now-line stays put — unless the viewer has scrolled away
+    // (browsing the evening), in which case it is left alone until Now is pressed.
+    var lockedScroll by remember { mutableIntStateOf(-1) }
+    LaunchedEffect(lockNow, lockPos, timelinePx) {
+        if (lockNow && timelinePx > 0 && state.channels.isNotEmpty()) { showTime(System.currentTimeMillis()); lockedScroll = scrollPx } else lockedScroll = -1
+    }
+    LaunchedEffect(liveNow) {
+        if (lockNow && lockedScroll >= 0 && scrollPx == lockedScroll && timelinePx > 0) { showTime(liveNow); lockedScroll = scrollPx }
     }
 
     // --- Rows, focus and the cursor ------------------------------------------------------------------

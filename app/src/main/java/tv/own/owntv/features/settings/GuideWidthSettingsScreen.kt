@@ -50,6 +50,8 @@ fun GuideWidthSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) 
     GuideLayoutPrefs.init(androidx.compose.ui.platform.LocalContext.current)
     val rowPct by GuideLayoutPrefs.rowPct.collectAsStateWithLifecycle()
     val textPct by GuideLayoutPrefs.textPct.collectAsStateWithLifecycle()
+    val lockNow by GuideLayoutPrefs.lockNow.collectAsStateWithLifecycle()
+    val lockPos by GuideLayoutPrefs.lockPos.collectAsStateWithLifecycle()
     var sizeEdit by remember { mutableStateOf<GuideSizeEdit?>(null) }
 
     LaunchedEffect(Unit) { runCatching { rowFocus.requestFocus() } }
@@ -61,7 +63,7 @@ fun GuideWidthSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) 
     StageFullPage(
         parents = listOf(stringResource(R.string.settings_group_layout)),
         title = stringResource(R.string.settings_guide_width),
-        count = pluralStringResource(R.plurals.settings_setting_count, 4, 4),
+        count = pluralStringResource(R.plurals.settings_setting_count, 6, 6),
         onBack = onBack,
         modifier = modifier,
     ) {
@@ -109,6 +111,28 @@ fun GuideWidthSettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) 
             onStep = stepText,
             help = SettingHelp(textTitle, textDesc, hints = settingHints(textValue, pinnable = false),
                 extra = { Box(Modifier.padding(top = 18.mpx), content = { preview() }) }),
+        )
+        val lockTitle = stringResource(R.string.aura_guide_lock_now)
+        val lockDesc = stringResource(R.string.aura_guide_lock_now_description)
+        StageSettingRow(
+            icon = OwnTVIcon.NOW,
+            title = lockTitle,
+            desc = lockDesc,
+            value = SettingValue.Switch(lockNow),
+            onClick = { GuideLayoutPrefs.setLockNow(!lockNow) },
+            help = SettingHelp(lockTitle, lockDesc, hints = settingHints(SettingValue.Switch(lockNow), pinnable = false)),
+        )
+        val posTitle = stringResource(R.string.aura_guide_lock_pos)
+        val posDesc = stringResource(R.string.aura_guide_lock_pos_description)
+        val posValue = SettingValue.Stepper(percent(lockPos))
+        StageSettingRow(
+            icon = OwnTVIcon.NOW,
+            title = posTitle,
+            desc = posDesc,
+            value = posValue,
+            onClick = { GuideLayoutPrefs.setLockPos(GuideLayoutPrefs.LOCK_DEFAULT) },
+            onStep = { d -> GuideLayoutPrefs.setLockPos(lockPos + d * GuideLayoutPrefs.LOCK_STEP) },
+            help = SettingHelp(posTitle, posDesc, hints = settingHints(posValue, pinnable = false)),
         )
         val reset = stringResource(R.string.common_reset)
         StageSettingRow(
