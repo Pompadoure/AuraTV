@@ -199,6 +199,8 @@ fun EpgScreen(
     previewEnabled: Boolean = true,
     /** Full screen -> preview hand-over: build the preview's own surface while the player still covers it. */
     previewSurfaceEarly: Boolean = false,
+    /** The player covers the guide: keep it looking exactly as it was (focus leaving must not change hints/stage). */
+    frozen: Boolean = false,
     liveMode: Boolean = false,
     onListView: () -> Unit = {},
     /** How ▶ from the rail enters the guide: at the grid row focus was on (the rail's entry hook, as Home's). */
@@ -357,7 +359,7 @@ fun EpgScreen(
     val shownRow = if (restoring) restoreRow else focusedRow
     val shownCursor = if (restoring) restoreTime else cursorTime
     val shownCell = inCellMode || restoring
-    val shownFocus = gridHasFocus || restoring
+    val shownFocus = gridHasFocus || restoring || frozen
 
     LaunchedEffect(restoreRow) {
         if (restoreRow < 0) return@LaunchedEffect
@@ -401,7 +403,7 @@ fun EpgScreen(
         (returnTo ?: { focusGrid() }).invoke()
     }
     // Leaving the grid (not for one of its own menus) goes back to the row stage.
-    LaunchedEffect(gridHasFocus, anyOverlay) { if (!gridHasFocus && !anyOverlay) inCellMode = false }
+    LaunchedEffect(gridHasFocus, anyOverlay, frozen) { if (!gridHasFocus && !anyOverlay && !frozen) inCellMode = false }
     // The one-line outcome beside Auto-match EPG goes after a while (the review, when there is one, says it instead).
     LaunchedEffect(matchSummary, review.isEmpty()) {
         if (matchSummary != null && review.isEmpty()) { delay(8_000); vm.clearSummary() }

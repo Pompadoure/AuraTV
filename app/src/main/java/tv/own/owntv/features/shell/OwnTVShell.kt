@@ -1567,6 +1567,7 @@ fun OwnTVShell(
                             onAddEpg = { openEpgAdd = true; onSelectSection(MainSection.SETTINGS) },
                             previewEnabled = playerMode == PlayerMode.NONE,
                             previewSurfaceEarly = previewSurfaceEarly,
+                            frozen = keepLiveBehind && !returningToGuide,
                             liveMode = true,
                             onEntryHook = { guideEntry = it },
                             onListView = { liveVm.setLiveView(tv.own.owntv.core.settings.SettingsRepository.LiveView.LIST) },
@@ -1634,6 +1635,7 @@ fun OwnTVShell(
                             onPlayCatchup = guidePlayCatchup,
                             previewEnabled = playerMode == PlayerMode.NONE,
                             previewSurfaceEarly = previewSurfaceEarly,
+                            frozen = keepLiveBehind && !returningToGuide,
                             onEntryHook = { guideEntry = it },
                             onAddEpg = { openEpgAdd = true; onSelectSection(MainSection.SETTINGS) },
                             restoreFocus = restoreFocus,
@@ -1924,6 +1926,12 @@ fun OwnTVShell(
                         }
                     }
                 }
+                val hudAlpha by androidx.compose.animation.core.animateFloatAsState(
+                    targetValue = if (frame.active) 0f else 1f,
+                    animationSpec = if (frame.active) androidx.compose.animation.core.snap()
+                    else androidx.compose.animation.core.tween(520, 80, androidx.compose.animation.core.FastOutSlowInEasing),
+                    label = "hudAlpha",
+                )
                 PlayerHud(
                     player = if (liveOnExo) liveVm.previewEngine else mpvEngine, // HUD drives the active engine
                     onBack = exitPlayer,
@@ -2046,7 +2054,8 @@ fun OwnTVShell(
                     onToastOk = goalToast?.let { a -> { switchToMatch(a.match) } },
                     // Hidden while the picture travels to or from the preview: its programme panel and controls
                     // are laid out for the whole window and would show squeezed into the small frame.
-                    modifier = Modifier.fillMaxSize().graphicsLayer { alpha = if (frame.active) 0f else 1f },
+                    // It fades in once the picture has landed (snaps away instantly when a travel starts).
+                    modifier = Modifier.fillMaxSize().graphicsLayer { alpha = hudAlpha },
                 )
                 goalToast?.let { a ->
                     tv.own.owntv.features.sports.GoalToast(a, Modifier.align(androidx.compose.ui.Alignment.TopEnd).padding(top = 45.mpx, end = 60.mpx))
