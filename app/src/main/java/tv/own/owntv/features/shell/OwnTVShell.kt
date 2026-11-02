@@ -313,7 +313,10 @@ fun OwnTVShell(
     val liveVm = org.koin.androidx.compose.koinViewModel<LiveViewModel>()
     // Experimental buffered-tail channel change (Settings); applied to the engine whenever it changes.
     val zapTailHold = TransitionPrefs.zapTailHold(auraContext)
-    LaunchedEffect(zapTailHold) { liveVm.previewEngine.zapTailHold = zapTailHold }
+    LaunchedEffect(zapTailHold) {
+        liveVm.previewEngine.zapTailHold = zapTailHold
+        android.util.Log.i("OwnTV-Zap", "buffered channel change setting is now " + (if (zapTailHold) "ON" else "OFF"))
+    }
     val changePending by liveVm.previewEngine.tailHolding.collectAsStateWithLifecycle()
     // "Previous" from the system media controls on a live channel goes back a channel.
     DisposableEffect(playbackSession, liveVm) {
