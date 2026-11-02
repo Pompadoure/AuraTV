@@ -311,6 +311,9 @@ fun OwnTVShell(
     // up/down (CH+/CH-). Guide tunes start through LiveViewModel too (they set zapSource = LIVE_TV), so
     // there is exactly ONE zap path: liveVm's. The Guide keeps its own EpgViewModel only for the grid.
     val liveVm = org.koin.androidx.compose.koinViewModel<LiveViewModel>()
+    // Experimental buffered-tail channel change (Settings); applied to the engine whenever it changes.
+    val zapTailHold = TransitionPrefs.zapTailHold(auraContext)
+    LaunchedEffect(zapTailHold) { liveVm.previewEngine.zapTailHold = zapTailHold }
     // "Previous" from the system media controls on a live channel goes back a channel.
     DisposableEffect(playbackSession, liveVm) {
         playbackSession.livePrevious = { liveVm.previousChannel() }

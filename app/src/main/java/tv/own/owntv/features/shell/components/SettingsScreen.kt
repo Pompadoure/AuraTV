@@ -643,6 +643,12 @@ fun SettingsScreen(
             focus = travelExitRowFocus,
             onClick = { saveScroll(); dialogReturn = travelExitRowFocus; showTravelExit = true },
         ),
+        RootRow(
+            "zap_tail", TileTone.SECONDARY, OwnTVIcon.LIVE_TV,
+            title = stringResource(R.string.aura_zap_tail), desc = stringResource(R.string.aura_zap_tail_description),
+            chip = stringResource(if (tv.own.owntv.features.shell.TransitionPrefs.zapTailHold(travelCtx)) R.string.common_on else R.string.common_off), chipTone = TileTone.SECONDARY,
+            onClick = { tv.own.owntv.features.shell.TransitionPrefs.setZapTailHold(travelCtx, !tv.own.owntv.features.shell.TransitionPrefs.zapTailHold(travelCtx)) },
+        ),
         navigationRootRow(settingsVm, navigationRowFocus) { saveScroll(); dialogReturn = navigationRowFocus; showNavigation = true }
             .copy(heading = stringResource(R.string.settings_section_navigation_layout)),
         liveLayoutRootRow(settingsVm, liveLayoutRowFocus) { saveScroll(); dialogReturn = liveLayoutRowFocus; showLiveLayout = true },
@@ -1031,6 +1037,8 @@ fun SettingsScreen(
                 chip = stringResource(R.string.aura_ms_value, tv.own.owntv.features.shell.TransitionPrefs.enterMs(travelCtx)), chipTone = TileTone.SECONDARY) { saveScroll(); dialogReturn = searchFieldFocus; showTravelEnter = true },
             SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.aura_transition_exit), stringResource(R.string.settings_search_keywords_animation), OwnTVIcon.MOTION, TileTone.SECONDARY,
                 chip = stringResource(R.string.aura_ms_value, tv.own.owntv.features.shell.TransitionPrefs.exitMs(travelCtx)), chipTone = TileTone.SECONDARY) { saveScroll(); dialogReturn = searchFieldFocus; showTravelExit = true },
+            SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.aura_zap_tail), stringResource(R.string.settings_search_keywords_animation), OwnTVIcon.LIVE_TV, TileTone.SECONDARY,
+                chip = stringResource(if (tv.own.owntv.features.shell.TransitionPrefs.zapTailHold(travelCtx)) R.string.common_on else R.string.common_off), chipTone = TileTone.SECONDARY, showChevron = false) { tv.own.owntv.features.shell.TransitionPrefs.setZapTailHold(travelCtx, !tv.own.owntv.features.shell.TransitionPrefs.zapTailHold(travelCtx)) },
             SettingsSearchEntry(stringResource(R.string.settings_group_appearance), stringResource(R.string.settings_weather), stringResource(R.string.settings_search_keywords_weather), OwnTVIcon.WEATHER, TileTone.SECONDARY,
                 chip = if (weatherEnabled) stringResource(R.string.common_on) else stringResource(R.string.common_off), chipTone = if (weatherEnabled) TileTone.PRIMARY else TileTone.SECONDARY) { open(SettingsTab.WEATHER) },
             SettingsSearchEntry(tv.own.owntv.features.settings.videoRowPath("vp_live_preview"), stringResource(R.string.settings_quick_live_preview), stringResource(R.string.settings_search_keywords_live_preview), OwnTVIcon.LIVE_TV, TileTone.TERTIARY,
