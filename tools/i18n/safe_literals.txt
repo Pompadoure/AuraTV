@@ -178,6 +178,8 @@
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	zap: tune wait ${delayMs}ms — ${zapWaitReason(lastZapPressMs, now, singleConnection)}
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	LiveZapList
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	direct tune: zap rebuild failed
+1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	zap list published: ${open.size} channels, canZap=${open.size > 1}
+1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	zap: playing channel $currentId is not in the list of ${list.size} (armed=$armed)
 1	technical	app/src/main/java/tv/own/owntv/features/live/ScheduleRecordingDialog.kt	:
 1	technical	app/src/main/java/tv/own/owntv/features/live/ScheduleRecordingDialog.kt	EEEMMMd
 1	log	app/src/main/java/tv/own/owntv/features/live/ZapTuneDelay.kt	(single-connection)
@@ -659,7 +661,6 @@
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	startup-settled
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	vtt
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	webvtt
-1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	zapDip
 1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	·
 8	technical	app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt	\0
 1	log	app/src/main/java/tv/own/owntv/features/shell/ShellViewModel.kt	OwnTVHome

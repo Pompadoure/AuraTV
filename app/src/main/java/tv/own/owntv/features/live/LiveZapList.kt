@@ -187,6 +187,7 @@ class LiveZapList(
         list = open
         _channels.value = open
         _canZap.value = open.size > 1
+        Log.i(TAG, "zap list published: ${open.size} channels, canZap=${open.size > 1}")
     }
 
     fun contains(channelId: Long): Boolean = list.any { it.id == channelId }
@@ -205,6 +206,7 @@ class LiveZapList(
     fun next(delta: Int): ChannelEntity? {
         val currentId = playingChannelId()
         val i = if (currentId != null) list.indexOfFirst { it.id == currentId } else -1
+        if (i < 0) Log.i(TAG, "zap: playing channel $currentId is not in the list of ${list.size} (armed=$armed)")
         if (i >= 0) {
             val nextIdx = wrappedZapIndex(i, delta, list.size) ?: return null
             return list[nextIdx]

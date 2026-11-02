@@ -541,6 +541,13 @@ fun OwnTVShell(
                         liveVm.watchFullscreen(ch, liveVm.browseListFor(startKey))
                     } else {
                         liveVm.watchFullscreen(ch, emptyList())
+                        // The channel's own category loads in the background; if it has not armed CH+/CH- a moment
+                        // later (a cold start with the library still settling), ask again instead of leaving the
+                        // keys dead for the whole session. The zap list logs what it did (tag LiveZapList).
+                        launch {
+                            kotlinx.coroutines.delay(2_000)
+                            if (!liveVm.canZap.value && playerMode != PlayerMode.NONE) liveVm.watchFullscreen(ch, emptyList())
+                        }
                     }
                     playerMode = PlayerMode.FULLSCREEN
                 }
@@ -1838,24 +1845,6 @@ fun OwnTVShell(
                     player = player, modifier = Modifier.fillMaxSize(), autoFrameRate = isFull && !inPip && autoFrameRate,
                     afrMatchResolution = afrMatchResolution, afrHoldSecs = afrPauseSecs,
                 )
-            }
-            // Channel change on the live engine: the old picture stays frozen until the new stream has a first
-            // frame (a second or two). Dip it to dark meanwhile and bring the new picture up out of the dark, so
-            // the wait reads as a transition instead of a freeze followed by a cut. Gives up after 6 s (the spinner's
-            // own threshold) so a dead channel does not leave the screen dimmed.
-            if (liveOnExo && isFull && !inPip) {
-                val tuneStarts by liveVm.previewEngine.tuneStarts.collectAsStateWithLifecycle()
-                val tuneFrames by liveVm.previewEngine.tuneFirstFrames.collectAsStateWithLifecycle()
-                var gaveUp by remember { mutableStateOf(false) }
-                LaunchedEffect(tuneStarts) { gaveUp = false; kotlinx.coroutines.delay(6_000); gaveUp = true }
-                val switching = tuneStarts != tuneFrames && !gaveUp && !frame.active
-                val dip by androidx.compose.animation.core.animateFloatAsState(
-                    targetValue = if (switching) 0.65f else 0f,
-                    animationSpec = if (switching) androidx.compose.animation.core.tween(240)
-                    else androidx.compose.animation.core.tween(420, 60, androidx.compose.animation.core.FastOutSlowInEasing),
-                    label = "zapDip",
-                )
-                if (dip > 0.005f) Box(Modifier.fillMaxSize().graphicsLayer { alpha = dip }.background(Color.Black))
             }
             // The item has no video track of its own (a radio channel, a music-only "movie"). Playing it is
             // correct — but a black screen with sound reads as a broken player, so name what is happening.
