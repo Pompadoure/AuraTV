@@ -382,6 +382,7 @@ fun EpgScreen(
         // Done when focus really is in the grid (or after a moment, so a grid that cannot take it does not
         // hold the display in restore mode).
         kotlinx.coroutines.withTimeoutOrNull(700) { androidx.compose.runtime.snapshotFlow { gridHasFocus }.first { it } }
+        inCellMode = true // belt and braces: the programme stage is where Back from the player must land
         TransitionLog.mark("guide focus restored")
         onRestored()
     }
@@ -413,7 +414,9 @@ fun EpgScreen(
         (returnTo ?: { focusGrid() }).invoke()
     }
     // Leaving the grid (not for one of its own menus) goes back to the row stage.
-    LaunchedEffect(gridHasFocus, anyOverlay, frozen) { if (!gridHasFocus && !anyOverlay && !frozen) inCellMode = false }
+    // Not while a restore is under way: the player closing flips `frozen` before focus has landed in the grid, and
+    // this reset used to run in that gap and drop the row back to the channel stage the restore had just left.
+    LaunchedEffect(gridHasFocus, anyOverlay, frozen, restoring) { if (!gridHasFocus && !anyOverlay && !frozen && !restoring) inCellMode = false }
     // The one-line outcome beside Auto-match EPG goes after a while (the review, when there is one, says it instead).
     LaunchedEffect(matchSummary, review.isEmpty()) {
         if (matchSummary != null && review.isEmpty()) { delay(8_000); vm.clearSummary() }

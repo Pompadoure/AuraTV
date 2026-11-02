@@ -552,8 +552,11 @@ fun OwnTVShell(
                         // later (a cold start with the library still settling), ask again instead of leaving the
                         // keys dead for the whole session. The zap list logs what it did (tag LiveZapList).
                         launch {
-                            kotlinx.coroutines.delay(2_000)
-                            if (!liveVm.canZap.value && playerMode != PlayerMode.NONE) liveVm.watchFullscreen(ch, emptyList())
+                            // Re-arm only: watchFullscreen would tune the channel all over again.
+                            repeat(8) {
+                                kotlinx.coroutines.delay(1_500)
+                                if (!liveVm.canZap.value && playerMode != PlayerMode.NONE) liveVm.armZapList(ch)
+                            }
                         }
                     }
                     playerMode = PlayerMode.FULLSCREEN

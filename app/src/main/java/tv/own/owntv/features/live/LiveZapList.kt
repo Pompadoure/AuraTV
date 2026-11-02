@@ -122,6 +122,20 @@ class LiveZapList(
         }
     }
 
+    /** Arm now and wait for it: CH± pressed while the list is not ready (a cold start) loads the playing channel's
+     *  category itself instead of doing nothing, and the press is carried out when it lands. */
+    suspend fun armNow(channel: ChannelEntity) {
+        loadJob?.cancel()
+        val loaded = loadForChannel(channel)
+        Log.i(TAG, "armNow: ${channel.name} category=${channel.categoryId} loaded ${loaded.size} channels")
+        publish(
+            loaded = loaded,
+            categoryId = channel.categoryId,
+            title = channel.categoryId?.let { categoryName(it) }?.takeIf { it.isNotBlank() },
+            key = null,
+        )
+    }
+
     /** Load one provider category, picked in the in-player category browser. [onLoaded] runs only if
      *  the category had channels: an empty one would leave the user on a blank overlay with nothing
      *  focusable, so the browser stays open and they can pick another. */

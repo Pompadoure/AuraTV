@@ -1317,8 +1317,20 @@ class LiveViewModel(
     /** Zap to the neighbouring channel ([delta] = +1 down / -1 up) — see [LiveZapList.next] for how
      *  the target is chosen. [ensurePlaying], reached through [zapTo], cancels any pending rebuild. */
     fun zap(delta: Int) {
-        zapList.next(delta)?.let { zapTo(it) }
+        val target = zapList.next(delta)
+        if (target != null) { zapTo(target); return }
+        // No list to step through (the first keys after a cold start, before the channel's category has
+        // loaded or after it came up empty): load it now and carry the press out, instead of ignoring it.
+        val playing = _previewChannel.value ?: return
+        android.util.Log.i("LiveZapList", "zap: nothing to step to, arming ${playing.name} first")
+        viewModelScope.launch {
+            zapList.armNow(playing)
+            zapList.next(delta)?.let { zapTo(it) }
+        }
     }
+
+    /** Re-arm CH±/the channel list around [channel] without touching playback (cold-start retries). */
+    fun armZapList(channel: ChannelEntity) { zapList.armFor(channel) }
 
     /** When the last CH+/- press moved the channel (elapsedRealtime); null before the first. */
     private var lastZapPressMs: Long? = null
