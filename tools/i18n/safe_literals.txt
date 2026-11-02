@@ -179,6 +179,9 @@
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	zap: nothing to step to, arming ${playing.name} first
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveViewModel.kt	zap: tune wait ${delayMs}ms — ${zapWaitReason(lastZapPressMs, now, singleConnection)}
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	LiveZapList
+1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	armFor: ${channel.name} category=${channel.categoryId} (armed=$armed, list=${list.size})
+1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	armFor: load for ${channel.name} failed
+1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	armFor: load for ${channel.name} was cancelled
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	armNow: ${channel.name} category=${channel.categoryId} loaded ${loaded.size} channels
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	direct tune: zap rebuild failed
 1	log	app/src/main/java/tv/own/owntv/features/live/LiveZapList.kt	zap list published: ${open.size} channels, canZap=${open.size > 1}
@@ -645,6 +648,7 @@
 1	technical	app/src/main/java/tv/own/owntv/features/shell/FullscreenFrame.kt	transition_ms
 1	technical	app/src/main/java/tv/own/owntv/features/shell/FullscreenFrame.kt	zap_tail_hold
 3	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	\0
+2	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	LiveZapList
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	OFF
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	ON
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	OwnTV-Zap
@@ -666,7 +670,9 @@
 1	performance	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	shell-composed
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	srt
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	ssa
+1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	startup check ${n + 1}: canZap=${liveVm.canZap.value} playerMode=$playerMode
 1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	startup-settled
+1	log	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	startup: last channel ${ch.name} category=${ch.categoryId}
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	vtt
 1	protocol	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	webvtt
 1	technical	app/src/main/java/tv/own/owntv/features/shell/OwnTVShell.kt	·
@@ -955,6 +961,7 @@
 1	technical	app/src/main/java/tv/own/owntv/player/PlayerHud.kt	$k: $v
 1	technical	app/src/main/java/tv/own/owntv/player/PlayerHud.kt	/ $it
 1	technical	app/src/main/java/tv/own/owntv/player/PlayerHud.kt	?
+1	technical	app/src/main/java/tv/own/owntv/player/PlayerHud.kt	handoverDip
 1	technical	app/src/main/java/tv/own/owntv/player/PlayerHud.kt	position: $reportPosition${reportDuration?.let { " / $it" }.orEmpty()}
 1	technical	app/src/main/java/tv/own/owntv/player/PlayerHud.kt	switchPulse
 1	technical	app/src/main/java/tv/own/owntv/player/PlayerHud.kt	switchPulseValue

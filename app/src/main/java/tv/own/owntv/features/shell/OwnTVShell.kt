@@ -318,6 +318,7 @@ fun OwnTVShell(
         android.util.Log.i("OwnTV-Zap", "buffered channel change setting is now " + (if (zapTailHold) "ON" else "OFF"))
     }
     val changePending by liveVm.previewEngine.tailHolding.collectAsStateWithLifecycle()
+    val handoverDip by liveVm.previewEngine.tailHandoverSoon.collectAsStateWithLifecycle()
     // "Previous" from the system media controls on a live channel goes back a channel.
     DisposableEffect(playbackSession, liveVm) {
         playbackSession.livePrevious = { liveVm.previousChannel() }
@@ -536,6 +537,7 @@ fun OwnTVShell(
                     // Favorites stays the browse context when the channel is a favourite and Favorites was the
                     // last category; otherwise let LiveViewModel build the channel's provider context rather
                     // than permanently arming a one-item list that disables CH+/CH-.
+                    android.util.Log.i("LiveZapList", "startup: last channel ${ch.name} category=${ch.categoryId}")
                     val startKey = liveVm.startupKeyFor(ch)
                     // Live TV sits behind the player, on the channel's category with the channel as its preview, so
                     // Back lands where channels are picked (not on Home) and the preview takes over the same stream.
@@ -553,8 +555,9 @@ fun OwnTVShell(
                         // keys dead for the whole session. The zap list logs what it did (tag LiveZapList).
                         launch {
                             // Re-arm only: watchFullscreen would tune the channel all over again.
-                            repeat(8) {
+                            repeat(8) { n ->
                                 kotlinx.coroutines.delay(1_500)
+                                android.util.Log.i("LiveZapList", "startup check ${n + 1}: canZap=${liveVm.canZap.value} playerMode=$playerMode")
                                 if (!liveVm.canZap.value && playerMode != PlayerMode.NONE) liveVm.armZapList(ch)
                             }
                         }
@@ -2039,6 +2042,7 @@ fun OwnTVShell(
                         previewChannel?.let { tv.own.owntv.player.DirectTuneChannelInfo(it.number, it.name, it.logoUrl) }
                     } else null,
                     channelChangePending = changePending,
+                    handoverDip = handoverDip,
                     changeHoldEnabled = zapTailHold,
                     // Guide card for the playing channel (nowNext follows previewChannel = what's playing).
                     liveEpgCard = if (isLiveChannel) {

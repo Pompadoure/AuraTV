@@ -111,10 +111,20 @@ class LiveZapList(
      *  (the list is already right), so CH+/CH− stays a pure in-memory step. */
     fun armFor(channel: ChannelEntity) {
         if (armed && channel.categoryId == categoryId && list.any { it.id == channel.id }) return
+        Log.i(TAG, "armFor: ${channel.name} category=${channel.categoryId} (armed=$armed, list=${list.size})")
         loadJob?.cancel()
         loadJob = scope.launch {
+            val loaded = try {
+                loadForChannel(channel)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                Log.i(TAG, "armFor: load for ${channel.name} was cancelled")
+                throw e
+            } catch (e: Throwable) {
+                Log.w(TAG, "armFor: load for ${channel.name} failed", e)
+                throw e
+            }
             publish(
-                loaded = loadForChannel(channel),
+                loaded = loaded,
                 categoryId = channel.categoryId,
                 title = channel.categoryId?.let { categoryName(it) }?.takeIf { it.isNotBlank() },
                 key = null,

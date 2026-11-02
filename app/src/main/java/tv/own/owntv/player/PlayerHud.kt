@@ -193,6 +193,8 @@ fun PlayerHud(
     // A buffered channel change is under way (the old picture still plays): the programme card waits for the new
     // channel to take over, and a quiet "switching to" pill shows meanwhile. [changeHoldEnabled] = the setting is on.
     channelChangePending: Boolean = false,
+    // The held channel change is about to hand over: dim the picture a little so the cut is soft (sound eases too).
+    handoverDip: Boolean = false,
     changeHoldEnabled: Boolean = false,
     // The archive's own wall-clock instant while catch-up/rewind is playing; null means the picture is
     // the present, and only the real clock shows. Drives the second, framed clock at top centre.
@@ -671,6 +673,14 @@ fun PlayerHud(
                 is TuneOsd.Tuned, null -> Unit
             }
         }
+
+        // Soft hand-over: a dim over the picture that comes up just before the new channel takes over and lifts after.
+        val dipAlpha by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (handoverDip) 0.55f else 0f,
+            animationSpec = androidx.compose.animation.core.tween(if (handoverDip) 260 else 420, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            label = "handoverDip",
+        )
+        if (dipAlpha > 0.001f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = dipAlpha)))
 
         // Buffered channel change under way: the picture and sound are still the old channel's, so say quietly that
         // the change is happening. A small pill at the top centre with a slow pulse; gone when the new channel takes over.
