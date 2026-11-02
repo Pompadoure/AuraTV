@@ -12,4 +12,5 @@
     <string name="aura_guide_lock_pos_description">Var den låsta nu-linjen sitter, som andel av tidslinjen från vänster</string>
     <string name="aura_zap_tail">Buffrat kanalbyte (experimentellt)</string>
     <string name="aura_zap_tail_description">Låter nuvarande kanal spela vidare från sin buffert medan nästa laddar, och byter sedan. Stäng av om något beter sig konstigt.</string>
+    <string name="aura_zap_switching">Byter till %1$s</string>
 </resources>

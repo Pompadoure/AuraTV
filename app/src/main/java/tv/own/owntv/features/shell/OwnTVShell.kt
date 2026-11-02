@@ -314,6 +314,7 @@ fun OwnTVShell(
     // Experimental buffered-tail channel change (Settings); applied to the engine whenever it changes.
     val zapTailHold = TransitionPrefs.zapTailHold(auraContext)
     LaunchedEffect(zapTailHold) { liveVm.previewEngine.zapTailHold = zapTailHold }
+    val changePending by liveVm.previewEngine.tailHolding.collectAsStateWithLifecycle()
     // "Previous" from the system media controls on a live channel goes back a channel.
     DisposableEffect(playbackSession, liveVm) {
         playbackSession.livePrevious = { liveVm.previousChannel() }
@@ -2031,6 +2032,8 @@ fun OwnTVShell(
                     zapChannel = if (isLiveChannel) {
                         previewChannel?.let { tv.own.owntv.player.DirectTuneChannelInfo(it.number, it.name, it.logoUrl) }
                     } else null,
+                    channelChangePending = changePending,
+                    changeHoldEnabled = zapTailHold,
                     // Guide card for the playing channel (nowNext follows previewChannel = what's playing).
                     liveEpgCard = if (isLiveChannel) {
                         {
@@ -2041,6 +2044,8 @@ fun OwnTVShell(
                             // The live row is dimmed while an archive plays — it is context, not the
                             // thing being watched — and returns to full strength back at the live edge.
                             androidx.compose.foundation.layout.Column(
+                                // Dimmed until the new channel has taken over: it already names the next channel.
+                                modifier = Modifier.alpha(if (changePending) 0.35f else 1f),
                                 horizontalAlignment = androidx.compose.ui.Alignment.Start,
                                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp),
                             ) {
