@@ -130,19 +130,6 @@ object TransitionPrefs {
     private fun prefs(context: android.content.Context) =
         context.applicationContext.getSharedPreferences(FILE, android.content.Context.MODE_PRIVATE)
 
-    // Experimental: keep the playing channel running from its buffer while the next one connects (off by default).
-    private const val TAIL_KEY = "zap_tail_hold"
-    private val tailHold = mutableStateOf(false)
-    private var tailLoaded = false
-    fun zapTailHold(context: android.content.Context): Boolean {
-        if (!tailLoaded) { tailHold.value = prefs(context).getBoolean(TAIL_KEY, false); tailLoaded = true }
-        return tailHold.value
-    }
-    fun setZapTailHold(context: android.content.Context, on: Boolean) {
-        tailHold.value = on; tailLoaded = true
-        prefs(context).edit().putBoolean(TAIL_KEY, on).apply()
-    }
-
     private fun load(context: android.content.Context) {
         if (loaded) return
         val p = prefs(context)

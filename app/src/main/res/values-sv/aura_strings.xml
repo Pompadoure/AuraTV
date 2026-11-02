@@ -10,7 +10,4 @@
     <string name="aura_guide_lock_now_description">Håller nu-linjen på en fast punkt i guiden medan programmen glider förbi</string>
     <string name="aura_guide_lock_pos">Låst position</string>
     <string name="aura_guide_lock_pos_description">Var den låsta nu-linjen sitter, som andel av tidslinjen från vänster</string>
-    <string name="aura_zap_tail">Buffrat kanalbyte (experimentellt)</string>
-    <string name="aura_zap_tail_description">Låter nuvarande kanal spela vidare från sin buffert medan nästa laddar, och byter sedan. Stäng av om något beter sig konstigt.</string>
-    <string name="aura_zap_switching">Byter till %1$s</string>
 </resources>
