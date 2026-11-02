@@ -190,6 +190,12 @@ fun PlayerHud(
     // The channel a CH+/- step moved to. The banner names it at once; the engine's metadata still
     // names the previous channel until the new stream opens, next to [zapGuide]'s new programme.
     zapChannel: DirectTuneChannelInfo? = null,
+    // A buffered channel change is under way (the old picture still plays): the programme card waits for the new
+    // channel to take over, and a quiet "switching to" pill shows meanwhile. [changeHoldEnabled] = the setting is on.
+    channelChangePending: Boolean = false,
+    // The held channel change is about to hand over: dim the picture a little so the cut is soft (sound eases too).
+    handoverDip: Boolean = false,
+    changeHoldEnabled: Boolean = false,
     // The archive's own wall-clock instant while catch-up/rewind is playing; null means the picture is
     // the present, and only the real clock shows. Drives the second, framed clock at top centre.
     // Lambda for the same reason as [timeshiftOffsetSec]: this instant advances every second too.
@@ -290,6 +296,11 @@ fun PlayerHud(
     var showFlash by remember { mutableStateOf(false) }
     LaunchedEffect(channelFlash) {
         if (channelFlash > 0) {
+            if (changeHoldEnabled) {
+                // The engine starts the change a moment after the key; then wait for the new channel to take over.
+                delay(250)
+                kotlinx.coroutines.withTimeoutOrNull(10_000) { snapshotFlow { channelChangePending }.first { !it } }
+            }
             showFlash = true; delay(3000); showFlash = false
         }
     }
@@ -660,6 +671,49 @@ fun PlayerHud(
                 is TuneOsd.Entry -> ChannelNumberCard(osd.digits)
                 is TuneOsd.Message -> ChannelNumberCard(osd.digits, error = osd.text)
                 is TuneOsd.Tuned, null -> Unit
+            }
+        }
+
+        // Soft hand-over: a dim over the picture that comes up just before the new channel takes over and lifts after.
+        val dipAlpha by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (handoverDip) 0.55f else 0f,
+            animationSpec = androidx.compose.animation.core.tween(if (handoverDip) 260 else 420, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            label = "handoverDip",
+        )
+        if (dipAlpha > 0.001f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = dipAlpha)))
+
+        // Buffered channel change under way: the picture and sound are still the old channel's, so say quietly that
+        // the change is happening. A small pill at the top centre with a slow pulse; gone when the new channel takes over.
+        androidx.compose.animation.AnimatedVisibility(
+            visible = channelChangePending && zapChannel != null,
+            enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(160)),
+            exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(220)),
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 28.dp),
+        ) {
+            val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "switchPulse").animateFloat(
+                initialValue = 0.45f, targetValue = 1f,
+                animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                    androidx.compose.animation.core.tween(700, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+                    androidx.compose.animation.core.RepeatMode.Reverse,
+                ),
+                label = "switchPulseValue",
+            )
+            Row(
+                modifier = Modifier.clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha = 0.55f))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                androidx.compose.foundation.layout.Box(
+                    Modifier.size(8.dp).alpha(pulse).clip(RoundedCornerShape(50)).background(Color.White),
+                )
+                androidx.compose.foundation.layout.Spacer(Modifier.width(10.dp))
+                Text(
+                    stringResource(R.string.aura_zap_switching, zapChannel?.name.orEmpty()),
+                    style = tv.own.owntv.ui.theme.stageText(22, 500),
+                    color = Color.White.copy(alpha = 0.9f),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
             }
         }
 

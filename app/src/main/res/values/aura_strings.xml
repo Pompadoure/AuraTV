@@ -10,4 +10,7 @@
     <string name="aura_guide_lock_now_description">Keep the now-line at a fixed point in the guide while the programmes slide past it</string>
     <string name="aura_guide_lock_pos">Lock position</string>
     <string name="aura_guide_lock_pos_description">Where the locked now-line sits, as a share of the timeline from the left</string>
+    <string name="aura_zap_tail">Buffered channel change (experimental)</string>
+    <string name="aura_zap_tail_description">Keeps the current channel playing from its buffer while the next one loads, then switches. Turn off if anything misbehaves.</string>
+    <string name="aura_zap_switching">Switching to %1$s</string>
 </resources>
