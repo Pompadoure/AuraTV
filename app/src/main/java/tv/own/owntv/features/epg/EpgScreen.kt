@@ -308,6 +308,15 @@ fun EpgScreen(
     // Row stage (false): ▲ ▼ move between channels, ◀ leaves for the menu. Cell stage (true): ◀ ▶ go
     // through the programmes. Without it, reaching the channel list meant ◀ past every programme.
     var inCellMode by remember { mutableStateOf(false) }
+    // True when the grid already shows the present where it belongs and the cursor is on it. Hold Back then goes on
+    // to the channel stage as before; anywhere else it brings the grid back to now (see the Back handler below).
+    val atNow by remember(lockNow, nowFrac, state.windowStart, state.windowEnd) {
+        derivedStateOf {
+            val target = (pxAt(liveNow) - timelinePx * nowFrac).toInt().coerceIn(0, maxScroll())
+            // Unlocked, the grid is put at "now" once and the clock then moves on, so only the cursor says where we are.
+            (!lockNow || kotlin.math.abs(scrollPx - target) <= 2) && kotlin.math.abs(cursorTime - liveNow) <= 120_000L
+        }
+    }
     // Back from a programme now does what Back from a channel does (opens the side menu); HOLDING Back goes to
     // the channel stage instead. Timed from the first KeyDown like the shell's own long-press Back (several TVs
     // re-fire KeyDown while a key is held); a short Back is never consumed here, only the Up that ends a hold.
@@ -554,7 +563,7 @@ fun EpgScreen(
                 )
             }
             // The key hints at the bottom right of the top area, level with the video's bottom edge.
-            Box(Modifier.align(Alignment.BottomEnd)) { GuideKeyHints(cellMode = shownCell && shownFocus) }
+            Box(Modifier.align(Alignment.BottomEnd)) { GuideKeyHints(cellMode = shownCell && shownFocus, atNow = atNow) }
         }
 
         }
@@ -661,7 +670,9 @@ fun EpgScreen(
                                                 backHoldJob = scope.launch {
                                                     kotlinx.coroutines.delay(600)
                                                     backLongFired = true
-                                                    inCellMode = false
+                                                    // Away from the present: back to it, at the chosen place. At it already: on to the channels.
+                                                    if (atNow) inCellMode = false
+                                                    else { snapToNow(); cursorTime = System.currentTimeMillis() }
                                                 }
                                             }
                                             false
@@ -1008,16 +1019,16 @@ private fun GuideEmpty(title: String, body: String? = null, action: String? = nu
 /**
  * How to move, under the programme beside the video (in place of action buttons,
  * which could not be reached without leaving the channel — they are all in Hold OK's menu). At row level:
- * OK Browse · ▲▼ Channels · ◀ Menu · Hold OK Options; inside a row: OK Watch · ◀ ▶ Programs · Back Menu · Hold Back Channels.
+ * OK Browse · ▲▼ Channels · ◀ Menu · Hold OK Options; inside a row: OK Watch · ◀ ▶ Programs · Back Menu · Hold Back Now (or Channels once there) · Hold OK Options.
  */
 @Composable
-private fun GuideKeyHints(cellMode: Boolean) {
+private fun GuideKeyHints(cellMode: Boolean, atNow: Boolean) {
     val hints = if (cellMode) {
         listOf(
             stringResource(R.string.common_ok) to stringResource(R.string.content_key_watch),
             "◀ ▶" to stringResource(R.string.content_key_programmes),
             stringResource(R.string.common_back) to stringResource(R.string.content_key_menu),
-            stringResource(R.string.aura_key_hold_back) to stringResource(R.string.content_key_channels),
+            stringResource(R.string.aura_key_hold_back) to stringResource(if (atNow) R.string.content_key_channels else R.string.content_epg_now_short),
             stringResource(R.string.content_key_hold_ok) to stringResource(R.string.content_key_options),
         )
     } else {
