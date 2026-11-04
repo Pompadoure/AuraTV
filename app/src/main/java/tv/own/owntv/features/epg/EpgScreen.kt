@@ -236,6 +236,10 @@ fun EpgScreen(
     LaunchedEffect(liveMode, liveSelected) { if (liveMode) vm.setCategoryFilter(liveSelected) }
     // Reload from the DB when the guide is opened, unless it was loaded a moment ago (back from fullscreen).
     LaunchedEffect(Unit) { TransitionLog.mark("guide composed"); vm.loadIfStale() }
+    // This screen stays composed behind the fullscreen player and the process outlives the app being "closed", so
+    // coming back (the player closing, the app resuming) must not show the hours it was last loaded with.
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) { vm.loadIfStale() }
+    LaunchedEffect(frozen) { if (!frozen) vm.loadIfStale() }
 
     // The preview stays on its channel while the guide is browsed; OK on a row brings that row's channel
     // into it, and OK again on the channel already there watches it full screen. Following the focus made
@@ -376,6 +380,8 @@ fun EpgScreen(
         focusedRow = restoreRow
         cursorTime = restoreTime
         inCellMode = true
+        // Back from the player always lands on the present moment, wherever the grid had been scrolled to.
+        if (timelinePx > 0) showTime(restoreTime)
         TransitionLog.mark("guide restore start")
         withFrameNanos { }
         focusGrid(restoreRow)

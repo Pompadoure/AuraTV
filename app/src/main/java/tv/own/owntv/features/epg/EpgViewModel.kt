@@ -870,10 +870,16 @@ class EpgViewModel(
      * row for nothing. Anything that changes what the grid shows (filter, search, order) calls [load] itself.
      */
     fun loadIfStale(maxAgeMs: Long = 60_000L) {
-        val fresh = _state.value.channels.isNotEmpty() && lastLoadedAt != 0L &&
+        // Also stale once the half hour the window was cut at has passed: a guide that stayed composed behind the
+        // player, or that the process kept while the app was away, otherwise shows the hours it was loaded with.
+        val now = System.currentTimeMillis()
+        val sameWindow = loadedAligned == now - (now % HALF_HOUR_MS)
+        val fresh = _state.value.channels.isNotEmpty() && lastLoadedAt != 0L && sameWindow &&
             android.os.SystemClock.elapsedRealtime() - lastLoadedAt < maxAgeMs
         if (!fresh) load()
     }
+    /** The half hour the loaded window was cut at (see [loadIfStale]). */
+    @Volatile private var loadedAligned = 0L
 
     fun load() {
         val previous = loadJob
@@ -1045,6 +1051,7 @@ class EpgViewModel(
             loading = false, message = message, hasEpgSources = hasEpg,
         )
         lastLoadedAt = android.os.SystemClock.elapsedRealtime()
+        loadedAligned = nowAligned
 
         tv.own.owntv.core.CorePerf.log {
             "guide_load channels=${channels.size} rawChannels=${rawChannels.size} " +
