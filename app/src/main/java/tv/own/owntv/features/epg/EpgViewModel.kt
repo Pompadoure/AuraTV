@@ -1132,7 +1132,7 @@ class EpgViewModel(
         // it settles is not something anyone is waiting on.
         private const val GUIDE_DATA_SETTLE_MS = 10_000L
         private const val HALF_HOUR_MS = 30L * 60 * 1000
-        private const val GUIDE_VISIBLE_PAST_MS = 2L * 60 * 60 * 1000
+        private const val GUIDE_VISIBLE_PAST_MS = 4L * 60 * 60 * 1000
         // How many guide rows to keep read. A screen shows ~8; this is generous enough that scrolling
         // back never re-reads, and small enough that the grid's memory does not grow with the
         // catalogue. ~100 programmes a row, so a few megabytes at the cap.

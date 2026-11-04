@@ -280,14 +280,20 @@ fun EpgScreen(
     fun showTime(t: Long) {
         scrollPx = (pxAt(t) - timelinePx * nowFrac).toInt().coerceIn(0, maxScroll())
     }
-    LaunchedEffect(state.windowStart, timelinePx, state.channels.isNotEmpty()) {
-        if (timelinePx > 0 && state.channels.isNotEmpty()) showTime(System.currentTimeMillis())
-    }
     // Locked: the timeline follows the clock, so the now-line stays put — unless the viewer has scrolled away
-    // (browsing the evening), in which case it is left alone until Now is pressed.
+    // (browsing the evening), in which case it is left alone until Now is pressed. [lockedScroll] is where the
+    // grid was last put for "now"; the follow below only runs while the grid is still exactly there.
     var lockedScroll by remember { mutableIntStateOf(-1) }
+    // Every way of showing the present goes through here, so the lock always knows where the grid was put.
+    fun snapToNow(at: Long = System.currentTimeMillis()) {
+        showTime(at)
+        lockedScroll = if (lockNow) scrollPx else -1
+    }
+    LaunchedEffect(state.windowStart, timelinePx, state.channels.isNotEmpty()) {
+        if (timelinePx > 0 && state.channels.isNotEmpty()) snapToNow()
+    }
     LaunchedEffect(lockNow, lockPos, timelinePx) {
-        if (lockNow && timelinePx > 0 && state.channels.isNotEmpty()) { showTime(System.currentTimeMillis()); lockedScroll = scrollPx } else lockedScroll = -1
+        if (lockNow && timelinePx > 0 && state.channels.isNotEmpty()) snapToNow() else lockedScroll = -1
     }
     LaunchedEffect(liveNow) {
         if (lockNow && lockedScroll >= 0 && scrollPx == lockedScroll && timelinePx > 0) { showTime(liveNow); lockedScroll = scrollPx }
@@ -381,7 +387,7 @@ fun EpgScreen(
         cursorTime = restoreTime
         inCellMode = true
         // Back from the player always lands on the present moment, wherever the grid had been scrolled to.
-        if (timelinePx > 0) showTime(restoreTime)
+        if (timelinePx > 0) snapToNow(restoreTime)
         TransitionLog.mark("guide restore start")
         withFrameNanos { }
         focusGrid(restoreRow)
@@ -570,7 +576,7 @@ fun EpgScreen(
                 onClick = { returnTo = { runCatching { dayTool.requestFocus() } }; dayOpen = true },
                 modifier = Modifier.focusRequester(dayTool),
             )
-            StageTool(text = stringResource(R.string.content_epg_now_short), icon = OwnTVIcon.NOW, onClick = { showTime(System.currentTimeMillis()); cursorTime = System.currentTimeMillis() })
+            StageTool(text = stringResource(R.string.content_epg_now_short), icon = OwnTVIcon.NOW, onClick = { snapToNow(); cursorTime = System.currentTimeMillis() })
             StageTool(
                 text = null, icon = OwnTVIcon.LIST, value = categoryLabel, valueAccent = true, trailingIcon = OwnTVIcon.CHEVRON_DOWN,
                 onClick = { sheetOpen = true },
