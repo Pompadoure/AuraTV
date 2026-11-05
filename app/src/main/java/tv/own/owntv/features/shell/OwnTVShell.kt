@@ -167,6 +167,15 @@ fun OwnTVShell(
     // does not close a film that is playing.
     val shellVm = org.koin.androidx.compose.koinViewModel<ShellViewModel>()
     var playerMode by shellVm.playerMode
+    // Auto refresh used to be looked at only when the app started or came back to the foreground, so a TV that
+    // stays on never refreshed. Look again when the player closes and every half hour. Quiet: it shows no pill.
+    LaunchedEffect(playerMode) { if (playerMode == PlayerMode.NONE) shellVm.checkAutoRefresh(includeStartup = false) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(30 * 60_000L)
+            shellVm.checkAutoRefresh(includeStartup = false)
+        }
+    }
     // Deep-link: the Guide's "Add EPG" button switches to Settings and opens EPG Sources → add.
     var openEpgAdd by remember { mutableStateOf(false) }
     // Setup's "Add a TV guide" lands on the same page once the shell is up.
