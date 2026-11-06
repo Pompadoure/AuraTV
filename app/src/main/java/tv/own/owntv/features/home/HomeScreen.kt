@@ -162,7 +162,8 @@ fun HomeScreen(
     /** Live TV's own "preview" setting: off keeps the card to a still plate with the programme. */
     livePreviewAllowed: Boolean = false,
     onLivePreview: (ChannelEntity) -> Unit = {},
-    nowTitleFor: suspend (ChannelEntity) -> String? = { null },
+    nowFor: suspend (ChannelEntity) -> tv.own.owntv.core.parser.XtEpgEntry? = { null },
+    onOpenGuide: () -> Unit = {},
     modifier: Modifier = Modifier,
     sportsVm: tv.own.owntv.features.sports.SportsViewModel = org.koin.androidx.compose.koinViewModel(),
 ) {
@@ -210,7 +211,7 @@ fun HomeScreen(
     val renderRows = orderedRows.filter { rowCanRender(it, state, showHeroFallback, sportsCards.size, liveNowOk) }
     val firstDataRow = renderRows.firstOrNull { it != HomeRow.HERO && rowHasData(it, state, sportsCards.size, liveNowOk) }
     val liveNowShown = HomeRow.LIVE_NOW in renderRows
-    val liveNowTitle = rememberNowTitle(liveNowChannel.takeIf { liveNowShown }, nowTitleFor)
+    val liveNowEntry = rememberNowEntry(liveNowChannel.takeIf { liveNowShown }, nowFor)
     // The card plays through Live TV's preview player once Start has settled (not while a player is open).
     LaunchedEffect(liveNowShown, liveNowChannel?.id, previewEnabled, livePreviewAllowed) {
         val channel = liveNowChannel
@@ -469,12 +470,12 @@ fun HomeScreen(
                         when (row) {
                             HomeRow.LIVE_NOW -> if (liveEngine != null && liveNowChannel != null) {
                                 HomeLiveNow(
-                                    title = row.displayTitle(),
                                     channel = liveNowChannel,
-                                    nowTitle = liveNowTitle,
+                                    onNow = liveNowEntry,
                                     engine = liveEngine,
                                     showVideo = previewEnabled && livePreviewAllowed,
                                     onWatch = { onPlayChannel(liveNowChannel.id, state.favoriteLive.ifEmpty { listOf(liveNowChannel) }) },
+                                    onGuide = onOpenGuide,
                                     onFocus = onNonHeroFocused,
                                     firstItemFocusRequester = firstItemFocusRequester,
                                     start = contentStart,
@@ -634,8 +635,7 @@ fun HomeScreen(
                             )
 
                             // Aura: the favourite-channels slot is a plain "On now" programme list, not a card rail.
-                            HomeRow.FAVORITE_CHANNELS -> HomeProgrammeList(
-                                title = stringResource(R.string.home_row_on_now),
+                            HomeRow.FAVORITE_CHANNELS -> HomeChannelStrip(
                                 channels = state.favoriteLive,
                                 guide = state.favoriteGuide,
                                 onChannelClick = onPlayChannel,

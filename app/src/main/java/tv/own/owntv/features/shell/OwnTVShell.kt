@@ -1555,7 +1555,8 @@ fun OwnTVShell(
                             liveEngine = liveVm.previewEngine,
                             livePreviewAllowed = auraLivePreviewOn,
                             onLivePreview = { liveVm.playPreview(it) },
-                            nowTitleFor = { ch -> liveVm.nowPlayingFor(listOf(ch))[ch.id]?.title },
+                            nowFor = { ch -> liveVm.nowPlayingFor(listOf(ch))[ch.id] },
+                            onOpenGuide = { onSelectSection(MainSection.EPG) },
                             modifier = Modifier.fillMaxSize(),
                         )
 
