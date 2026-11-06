@@ -352,11 +352,14 @@ fun HomeScreen(
     // channels leaves Keep watching and the folded title where they are). The TV default instead pins
     // the focused item a third of the way down, which slid the whole page up on every ▼. The hero
     // itself never scrolls.
-    val homeBringIntoViewSpec = remember {
+    // Aura: keep a bottom margin under the focused card so a poster row's titles (which hang below the
+    // card) are not cut off by the screen edge.
+    val bottomMarginPx = with(LocalDensity.current) { 72.mpx.toPx() }
+    val homeBringIntoViewSpec = remember(bottomMarginPx) {
         object : BringIntoViewSpec {
             override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
                 if (heroFocused.value) return 0f
-                val trailing = offset + size - containerSize
+                val trailing = offset + size - (containerSize - bottomMarginPx)
                 return when {
                     offset >= 0f && trailing <= 0f -> 0f
                     offset < 0f || size > containerSize -> offset

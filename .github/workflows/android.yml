@@ -117,7 +117,7 @@ jobs:
       # Remove this step when the pin catches up (see CLAUDE.md).
       - name: Use AuraTV_Core source (our fork, branch aura)
         env:
-          CORE_SHA: bce20bc078bfea42870566917bacc724ce50e4e2
+          CORE_SHA: fdd3e1ef28465e2d7df91e1a9773342844a493ae
         run: |
           git init -q "$RUNNER_TEMP/core-src"
           git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/Pompadoure/AuraTV_Core.git "$CORE_SHA"
@@ -203,7 +203,7 @@ jobs:
       # Remove this step when the pin catches up (see CLAUDE.md).
       - name: Use AuraTV_Core source (our fork, branch aura)
         env:
-          CORE_SHA: bce20bc078bfea42870566917bacc724ce50e4e2
+          CORE_SHA: fdd3e1ef28465e2d7df91e1a9773342844a493ae
         run: |
           git init -q "$RUNNER_TEMP/core-src"
           git -C "$RUNNER_TEMP/core-src" fetch -q --depth 1 https://github.com/Pompadoure/AuraTV_Core.git "$CORE_SHA"
