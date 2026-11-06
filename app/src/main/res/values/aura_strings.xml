@@ -13,4 +13,7 @@
     <string name="aura_zap_tail">Buffered channel change (experimental)</string>
     <string name="aura_zap_tail_description">Keeps the current channel playing from its buffer while the next one loads, then switches. Turn off if anything misbehaves.</string>
     <string name="aura_zap_switching">Switching to %1$s</string>
+    <string name="aura_home_row_live_now">Live TV</string>
+    <string name="aura_home_row_live_now_description">Your last channel, playing live, with what is on now</string>
+    <string name="aura_home_move_hint">Moving this section: ▲ ▼ to move, OK to save</string>
 </resources>

@@ -157,6 +157,12 @@ fun HomeScreen(
     onEntryHook: (((() -> Boolean)?) -> Unit)? = null,
     /** Sports Hub: ▶ on a Live sports card opens its match page. */
     onOpenMatch: (tv.own.owntv.core.sports.model.Match) -> Unit = {},
+    /** Aura: Live TV's one preview player, for the Live now card; null when Start has no way to show it. */
+    liveEngine: tv.own.owntv.player.LivePreviewEngine? = null,
+    /** Live TV's own "preview" setting: off keeps the card to a still plate with the programme. */
+    livePreviewAllowed: Boolean = false,
+    onLivePreview: (ChannelEntity) -> Unit = {},
+    nowTitleFor: suspend (ChannelEntity) -> String? = { null },
     modifier: Modifier = Modifier,
     sportsVm: tv.own.owntv.features.sports.SportsViewModel = org.koin.androidx.compose.koinViewModel(),
 ) {
@@ -195,11 +201,29 @@ fun HomeScreen(
     var previewIndex by remember { mutableStateOf(-1) }
     var focusedHeroIndex by remember { mutableStateOf(-1) }
     val orderedRows = state.config.visibleOrder
+    // Aura: the Live now card shows the channel watched last, else the first favourite.
+    val liveNowChannel = state.recentLive.firstOrNull() ?: state.favoriteLive.firstOrNull()
+    val liveNowOk = liveEngine != null && liveNowChannel != null
     val heroVisible = HomeRow.HERO in orderedRows
-    val hasNonHeroContent = orderedRows.any { it != HomeRow.HERO && rowHasData(it, state, sportsCards.size) }
+    val hasNonHeroContent = orderedRows.any { it != HomeRow.HERO && rowHasData(it, state, sportsCards.size, liveNowOk) }
     val showHeroFallback = heroVisible && state.heroItems.isEmpty() && !hasNonHeroContent
-    val renderRows = orderedRows.filter { rowCanRender(it, state, showHeroFallback, sportsCards.size) }
-    val firstDataRow = renderRows.firstOrNull { it != HomeRow.HERO && rowHasData(it, state, sportsCards.size) }
+    val renderRows = orderedRows.filter { rowCanRender(it, state, showHeroFallback, sportsCards.size, liveNowOk) }
+    val firstDataRow = renderRows.firstOrNull { it != HomeRow.HERO && rowHasData(it, state, sportsCards.size, liveNowOk) }
+    val liveNowShown = HomeRow.LIVE_NOW in renderRows
+    val liveNowTitle = rememberNowTitle(liveNowChannel.takeIf { liveNowShown }, nowTitleFor)
+    // The card plays through Live TV's preview player once Start has settled (not while a player is open).
+    LaunchedEffect(liveNowShown, liveNowChannel?.id, previewEnabled, livePreviewAllowed) {
+        val channel = liveNowChannel
+        if (liveNowShown && channel != null && previewEnabled && livePreviewAllowed) {
+            kotlinx.coroutines.delay(400L)
+            onLivePreview(channel)
+        }
+    }
+    // Aura: hold OK on a section, then ▲ ▼ moves it; OK or Back leaves it where it is. [focusedRow] is the section
+    // that has focus; [moveIgnoreUp] swallows the release of the press that started the move.
+    var movingRow by remember { mutableStateOf<HomeRow?>(null) }
+    var focusedRow by remember { mutableStateOf<HomeRow?>(null) }
+    var moveIgnoreUp by remember { mutableStateOf(false) }
     val showAllHiddenState = orderedRows.isEmpty()
     val showEmptyState = orderedRows.isNotEmpty() && renderRows.isEmpty()
     val fullBleed = renderRows.firstOrNull() == HomeRow.TRENDING &&
@@ -387,6 +411,49 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .onFocusChanged { if (it.hasFocus) onChildFocused() }
+                    .onPreviewKeyEvent { e ->
+                        val moving = movingRow
+                        val isOk = e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter
+                        if (moving == null) {
+                            // Held OK on a movable section starts the move.
+                            val row = focusedRow
+                            if (isOk && e.type == KeyEventType.KeyDown && e.nativeKeyEvent.isLongPress &&
+                                row != null && row != HomeRow.TRENDING
+                            ) {
+                                movingRow = row
+                                moveIgnoreUp = true
+                                true
+                            } else false
+                        } else when {
+                            e.key == Key.DirectionUp || e.key == Key.DirectionDown -> {
+                                if (e.type == KeyEventType.KeyDown) {
+                                    val movable = renderRows.filter { it != HomeRow.TRENDING }
+                                    val at = movable.indexOf(moving)
+                                    val over = movable.getOrNull(if (e.key == Key.DirectionUp) at - 1 else at + 1)
+                                    if (at >= 0 && over != null) {
+                                        vm.moveRow(moving, over)
+                                        homeScope.launch {
+                                            kotlinx.coroutines.delay(60)
+                                            runCatching { listState.animateScrollToItem(renderRows.indexOf(moving).coerceAtLeast(0)) }
+                                        }
+                                    }
+                                }
+                                true
+                            }
+                            e.key == Key.DirectionLeft || e.key == Key.DirectionRight -> true
+                            isOk -> {
+                                if (e.type == KeyEventType.KeyUp) {
+                                    if (moveIgnoreUp) moveIgnoreUp = false else movingRow = null
+                                }
+                                true
+                            }
+                            e.key == Key.Back -> {
+                                if (e.type == KeyEventType.KeyUp) movingRow = null
+                                true
+                            }
+                            else -> false
+                        }
+                    }
                     // ▶ out of the rail comes back to the card it left from (rail carry-over): every level
                     // of the list remembers its focused child.
                     .focusGroup(),
@@ -396,9 +463,26 @@ fun HomeScreen(
             ) {
                 itemsIndexed(renderRows, key = { _, row -> row.name }) { _, row ->
                     val firstItemFocusRequester = rowFocusRequester(row)
-                    val rowModifier = if (row == firstRowUnderHero) unfoldOnUp else Modifier
+                    val rowModifier = (if (row == firstRowUnderHero) unfoldOnUp else Modifier)
+                        .onFocusChanged { if (it.hasFocus) focusedRow = row }
                     CompositionLocalProvider(LocalBringIntoViewSpec provides rowBringIntoViewSpec) {
                         when (row) {
+                            HomeRow.LIVE_NOW -> if (liveEngine != null && liveNowChannel != null) {
+                                HomeLiveNow(
+                                    title = row.displayTitle(),
+                                    channel = liveNowChannel,
+                                    nowTitle = liveNowTitle,
+                                    engine = liveEngine,
+                                    showVideo = previewEnabled && livePreviewAllowed,
+                                    onWatch = { onPlayChannel(liveNowChannel.id, state.favoriteLive.ifEmpty { listOf(liveNowChannel) }) },
+                                    onFocus = onNonHeroFocused,
+                                    firstItemFocusRequester = firstItemFocusRequester,
+                                    start = contentStart,
+                                    track = track,
+                                    modifier = rowModifier,
+                                )
+                            }
+
                             HomeRow.TRENDING -> if (state.trendingItems.size < TrendingDao.MIN_ELIGIBLE_ITEMS) {
                                 // Too few titles to be a "trending" row at all, so the row is not drawn.
                             } else if (!fullBleed || trendingItem == null) {
@@ -618,6 +702,21 @@ fun HomeScreen(
         }
     }
 
+    androidx.activity.compose.BackHandler(enabled = movingRow != null) { movingRow = null }
+    if (movingRow != null) {
+        Box(Modifier.fillMaxSize()) {
+            Text(
+                stringResource(R.string.aura_home_move_hint),
+                style = stageText(20, 700), color = StageColors.Text,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 40.mpx)
+                    .background(StageColors.Ink.copy(alpha = 0.72f), RoundedCornerShape(16.mpx))
+                    .padding(horizontal = 28.mpx, vertical = 14.mpx),
+            )
+        }
+    }
+
     // The preview starts after the card has settled, so decoder setup does not compete with the focus
     // lift. A trailer counts as "not previewing": leaving the preview decoding behind the trailer window
     // costs a second video pipeline for a picture nobody can see.
@@ -664,7 +763,8 @@ fun HomeScreen(
     InAppToast(trendingToast)
 }
 
-private fun rowHasData(row: HomeRow, state: HomeUiState, sportsCards: Int): Boolean = when (row) {
+private fun rowHasData(row: HomeRow, state: HomeUiState, sportsCards: Int, liveNow: Boolean): Boolean = when (row) {
+    HomeRow.LIVE_NOW -> liveNow
     HomeRow.TRENDING -> state.trendingItems.size >= TrendingDao.MIN_ELIGIBLE_ITEMS
     HomeRow.LIVE_SPORTS -> sportsCards > 0
     HomeRow.HERO -> state.heroItems.isNotEmpty()
@@ -680,10 +780,10 @@ private fun rowHasData(row: HomeRow, state: HomeUiState, sportsCards: Int): Bool
     HomeRow.CONTINUE_SERIES -> state.continueSeries.isNotEmpty()
 }
 
-private fun rowCanRender(row: HomeRow, state: HomeUiState, showHeroFallback: Boolean, sportsCards: Int): Boolean =
+private fun rowCanRender(row: HomeRow, state: HomeUiState, showHeroFallback: Boolean, sportsCards: Int, liveNow: Boolean): Boolean =
     when (row) {
         HomeRow.HERO -> state.heroItems.isNotEmpty() || showHeroFallback
-        else -> rowHasData(row, state, sportsCards)
+        else -> rowHasData(row, state, sportsCards, liveNow)
     }
 
 private fun HeroItem.heroKey(): String = when (this) {

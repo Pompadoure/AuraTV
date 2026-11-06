@@ -435,6 +435,7 @@ fun OwnTVShell(
     val browserRailItems = liveVm.railItems.collectAsStateWithLifecycle().value.let { all -> remember(all) { all.filterNot { it.sealed } } }
     val browserRailCounts by liveVm.railCounts.collectAsStateWithLifecycle()
     val previewChannel by liveVm.previewChannel.collectAsStateWithLifecycle()
+    val auraLivePreviewOn by liveVm.livePreviewEnabled.collectAsStateWithLifecycle()
     // Home / screensaver with a live channel on mpv: mpv frees the stream and keeps no restore for live
     // (ExoPlayer's live engine does), so the return found a black, paused player. Tune the same channel
     // again once the relock check is done; the tune reopens its saved copy and offers Resume / Go live.
@@ -1551,6 +1552,10 @@ fun OwnTVShell(
                                 onSelectSection(MainSection.SPORTS)
                             },
                             contentStart = if (navStyle == tv.own.owntv.core.settings.SettingsRepository.NavStyle.DOCKED) 64.mpx else 150.mpx,
+                            liveEngine = liveVm.previewEngine,
+                            livePreviewAllowed = auraLivePreviewOn,
+                            onLivePreview = { liveVm.playPreview(it) },
+                            nowTitleFor = { ch -> liveVm.nowPlayingFor(listOf(ch))[ch.id]?.title },
                             modifier = Modifier.fillMaxSize(),
                         )
 

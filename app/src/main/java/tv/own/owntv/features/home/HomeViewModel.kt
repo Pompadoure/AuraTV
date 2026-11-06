@@ -392,6 +392,26 @@ class HomeViewModel(
      * gate has confirmed the active id against Room's profile list. Everyone else passes nothing and
      * gets the lookup.
      */
+    /**
+     * Aura: moves [row] to where [over] is, from Start itself (hold OK on a section, then ▲ ▼). The list is the
+     * same one Settings → Home edits, so the two always agree; the screen follows at once, the store a moment later.
+     */
+    fun moveRow(row: tv.own.owntv.core.model.HomeRow, over: tv.own.owntv.core.model.HomeRow) {
+        val current = _uiState.value.config
+        val rows = current.settingsRows.toMutableList()
+        val from = rows.indexOf(row)
+        val to = rows.indexOf(over)
+        if (from < 0 || to < 0 || from == to) return
+        rows.removeAt(from)
+        rows.add(to, row)
+        val order = rows + current.order.filterNot { it.implemented }
+        _uiState.value = _uiState.value.copy(config = current.copy(order = order))
+        viewModelScope.launch {
+            val pid = currentProfileId() ?: return@launch
+            settings.updateHomeConfig(pid) { it.copy(order = order) }
+        }
+    }
+
     fun refresh(profileId: Long? = null) {
         reloadRequests.tryEmit(profileId?.takeIf { it >= 0 })
     }

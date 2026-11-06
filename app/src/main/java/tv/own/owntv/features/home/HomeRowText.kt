@@ -21,6 +21,7 @@ import tv.own.owntv.core.model.HomeRow
 fun HomeRow.displayTitle(): String = stringResource(
     when (this) {
         HomeRow.TRENDING -> R.string.home_row_now_trending
+        HomeRow.LIVE_NOW -> R.string.aura_home_row_live_now
         HomeRow.HERO -> R.string.home_row_keep_watching
         HomeRow.LIVE_SPORTS -> R.string.sports_home_row
         HomeRow.RECENT_CHANNELS -> R.string.home_row_recent_channels
@@ -36,6 +37,7 @@ fun HomeRow.displayTitle(): String = stringResource(
 fun HomeRow.settingsDescription(): String = stringResource(
     when (this) {
         HomeRow.TRENDING -> R.string.home_row_trending_description
+        HomeRow.LIVE_NOW -> R.string.aura_home_row_live_now_description
         HomeRow.HERO -> R.string.home_row_hero_description
         HomeRow.LIVE_SPORTS -> R.string.sports_home_row_description
         HomeRow.RECENT_CHANNELS -> R.string.home_row_recent_description
